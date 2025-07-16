@@ -3,7 +3,7 @@ import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Sidebar from '../components/Sidebar.astro';
 import Player from '../components/Player.svelte';
-import NowPlaying from '../components/NowPlaying.svelte'
+import Playlist from '../components/PlaylistItems.svelte'
 ---
 
 <MainLayout title="YouTube Music">
@@ -105,7 +105,7 @@ import NowPlaying from '../components/NowPlaying.svelte'
             ))}
           </div>
         </section>
-        
+        <Playlist client:only="svelte"/>
       </div>
     </div>
   </div>
@@ -149,7 +149,12 @@ import NowPlaying from '../components/NowPlaying.svelte'
   async function getQueue() {
     const queue:QueueItem|null  = await YTMusicApi.getQueue();
     console.log("queue: ", queue?.items[0])
+    const event = new CustomEvent('updatePlaylist',{
+      detail: queue?.items
+    })
+    window.dispatchEvent(event);
     return queue
   }
   getQueue()
+  setInterval(getQueue, 10000);
 </script>
