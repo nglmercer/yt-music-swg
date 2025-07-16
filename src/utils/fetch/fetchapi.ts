@@ -1,3 +1,4 @@
+import { safeParse } from "../jsonutils/safeparse";
 // Definimos los tipos para las opciones de fetch y para el cuerpo de la solicitud
 type FetchOptions = RequestInit & {
   headers?: Record<string, string>;
@@ -8,7 +9,7 @@ type RequestBody = Record<string, any> | FormData;
 // Constantes de URLs con tipado explícito
 const windowurl: string = typeof window !== "undefined" ? window.location.origin : "";
 const baseurlApi: string = windowurl;
-const PORT = '9001'
+const PORT = '26538'
 const baseurlTestApi: string = "http://localhost"+PORT; // API de desarrollo
 const mockApi: string = "http://localhost"+PORT; // Otra opción de mock
 
@@ -16,47 +17,66 @@ const mockApi: string = "http://localhost"+PORT; // Otra opción de mock
 const actualBaseApi: string =
   import.meta.env.MODE === "development" ? baseurlTestApi : baseurlApi;
 
-// Objeto http con métodos tipados para las operaciones CRUD
+// --- NUEVA FUNCIÓN PARA MANEJAR RESPUESTAS ---
+async function handleResponse<T>(res: Response): Promise<T | any> { // <-- CAMBIO 1: El retorno ahora es Promise<T | undefined>
+  if (res.status === 204) {
+    // Ahora es seguro devolver undefined porque está en el tipo de retorno.
+    return Promise.resolve(undefined);
+  }
+
+  const text = await res.text();
+
+  if (!text) {
+    // También es seguro devolver undefined aquí.
+    return Promise.resolve(undefined);
+  }
+
+  try {
+    // Tu safeParse es ideal aquí. El resultado se casteará al tipo T.
+    return safeParse(text) as T;
+  } catch (error) {
+    console.error("Falló el análisis de la respuesta:", error);
+    return Promise.reject(new Error("La respuesta no pudo ser analizada."));
+  }
+}
+
+// --- TU OBJETO HTTP MODIFICADO ---
 const http = {
   get: <T>(url: string, options: FetchOptions = {}): Promise<T> => {
     return fetch(url, {
       method: 'GET',
       ...options
-    }).then(res => res.json() as Promise<T>);
+    }).then(handleResponse); // Usamos el manejador de respuesta
   },
+
   post: <T>(url: string, body: RequestBody = {}, options: FetchOptions = {}): Promise<T> => {
     if (body instanceof FormData) {
-      // Omitimos Content-Type; el navegador lo establece automáticamente para FormData
       const filteredHeaders = Object.fromEntries(
         Object.entries(options.headers || {}).filter(([key]) => key.toLowerCase() !== 'content-type')
       );
-      
-      const filteredOptions = Object.fromEntries(
-        Object.entries(options).filter(([key]) => key !== 'headers')
-      );
+
+      const filteredOptions = { ...options, headers: filteredHeaders };
 
       return fetch(url, {
         method: 'POST',
-        headers: filteredHeaders,
         body: body,
         ...filteredOptions
-      }).then(res => res.json() as Promise<T>);
+      }).then(handleResponse); // Usamos el manejador de respuesta
     } else {
-      const filteredOptions = Object.fromEntries(
-        Object.entries(options).filter(([key]) => key !== 'headers')
-      );
-        
+      const filteredOptions = { ...options };
+      
       return fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(options.headers || {})
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(body), // Usamos JSON.stringify para el cuerpo
         ...filteredOptions
-      }).then(res => res.json() as Promise<T>);
+      }).then(handleResponse); // Usamos el manejador de respuesta
     }
   },
+
   put: <T>(url: string, body: RequestBody = {}, options: FetchOptions = {}): Promise<T> => {
     return fetch(url, {
       method: 'PUT',
@@ -64,15 +84,16 @@ const http = {
         'Content-Type': 'application/json',
         ...(options.headers || {})
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body), // Usamos JSON.stringify para el cuerpo
       ...options
-    }).then(res => res.json() as Promise<T>);
+    }).then(handleResponse); // Usamos el manejador de respuesta
   },
+
   delete: <T>(url: string, options: FetchOptions = {}): Promise<T> => {
     return fetch(url, {
       method: 'DELETE',
       ...options
-    }).then(res => res.json() as Promise<T>);
+    }).then(handleResponse); // Usamos el manejador de respuesta
   }
 };
 
@@ -119,33 +140,6 @@ function getParams(paramNames: string[] = []): Record<string, string> {
   return paramsObject;
 }
       
-/**
- * Parsea un valor de forma segura, intentando convertir strings JSON a objetos/arrays.
- * @param value - El valor a parsear.
- * @returns El valor parseado o el original si no se puede parsear.
- */
-function safeParse(value: any): any {
-  try {
-    if (typeof value === 'string') {
-      if (value.trim().startsWith('{') || value.trim().startsWith('[')) {
-        try {
-          return JSON.parse(value);
-        } catch (error) {
-          // Intenta corregir JSON malformado (claves sin comillas, comillas simples)
-          const fixedJson = value
-            .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')
-            .replace(/:\s*'([^']+)'/g, ': "$1"');
-          return JSON.parse(fixedJson);
-        }
-      }
-    }
-    // Devuelve el valor si no es un string JSON (o ya es un objeto/array)
-    return value;
-  } catch (error) {
-    console.error("Error al parsear JSON:", error, "Valor recibido:", value);
-    return value;
-  }
-}
 
 // Interfaces para tipar la información del usuario y los datos almacenados
 interface UserInfo {
@@ -409,6 +403,10 @@ class YouTubeMusicApi extends BaseApi {
     return this.request(this.http.post(url, body, { headers: this._authHeaders() }));
   }
 }
+const YTMusicApi = new YouTubeMusicApi(`http://localhost:${PORT}`);
+
 export {
-  YouTubeMusicApi
+  YouTubeMusicApi,
+  PORT,
+  YTMusicApi
 }

@@ -2,7 +2,7 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Sidebar from '../components/Sidebar.astro';
-import Player from '../components/Player.astro';
+import Player from '../components/Player.svelte';
 import SearchBar from '../components/SearchBar.astro';
 
 // Get search query from URL parameters
@@ -82,7 +82,8 @@ const searchQuery = url.searchParams.get('q') || '';
   </div>
   
   <!-- Player at the bottom -->
-  <Player />
+  <Player client:only="svelte" />
+
 </MainLayout>
 
 <script>

@@ -2,7 +2,8 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Sidebar from '../components/Sidebar.astro';
-import Player from '../components/Player.astro';
+import Player from '../components/Player.svelte';
+import NowPlaying from '../components/NowPlaying.svelte'
 ---
 
 <MainLayout title="YouTube Music">
@@ -107,169 +108,44 @@ import Player from '../components/Player.astro';
         
         <section>
           <h2 class="text-xl md:text-2xl font-bold mb-4">Recomendado para ti</h2>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div class="group cursor-pointer">
-                <div class="aspect-square bg-gray-700 rounded-lg mb-2 md:mb-3 relative overflow-hidden">
-                  <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-orange-500 opacity-80"></div>
-                  <div class="absolute inset-0 flex items-center justify-center">
-                    <svg class="w-8 h-8 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-                    </svg>
-                  </div>
-                  <button class="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-1.5 md:p-2 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </button>
-                </div>
-                <h3 class="text-sm md:text-base font-medium truncate">Playlist {i + 1}</h3>
-                <p class="text-sm text-gray-400 truncate">Mix personalizado</p>
-              </div>
-            ))}
-          </div>
+          <NowPlaying client:only="svelte"></NowPlaying>
         </section>
       </div>
     </div>
   </div>
   
   <!-- Player at the bottom -->
-  <Player />
+  <Player client:only="svelte" />
 <script>
-	import { YouTubeMusicApi } from "../utils/fetch/fetchapi";
-	import type { YouTubeMusicSearchResponse,CleanSection,CleanItem,ItemWrapper,ShelfWrapper  } from "../utils/fetch/youtube-music"
-	const Port = 26538;
-	async function getPlaylist() {
-		const api = new YouTubeMusicApi("http://localhost:"+Port);
-		const result = await api.search({
-			query: "sekai no owari",
-		})
-		return result;
-	}
-	document.addEventListener('DOMContentLoaded',async () => {
-		console.log('DOMContentLoaded');
-		const result = await getPlaylist();
-		console.log("result",result);
-		        // --- EJECUCIÓN ---
-        // 1. Parseamos el JSON gigante para obtener datos limpios
-        const cleanResults = parseYouTubeMusicResponse(result);
+  import { YouTubeMusicApi } from "../utils/fetch/fetchapi";
+  import type { SongData } from "../utils/fetch/youtube-music";
+
+  const Port = 26538;
+  const api = new YouTubeMusicApi(`http://localhost:${Port}`);
+
+  // Función para obtener la canción y despachar el evento
+  async function checkForUpdates() {
+    try {
+      console.log('Buscando actualización de la canción...');
+      const newSongData = await api.getCurrentSong();
+
+      if (newSongData) {
+        console.log('Nuevos datos encontrados. Despachando evento "update-song".');
         
-        // 2. Mostramos los datos limpios en la consola para depurar
-        console.log('Datos simplificados:', cleanResults);
-
-        // 3. Renderizamos los datos en la página
-        renderResults(cleanResults);
-	});
-/**
- * Extrae y simplifica los datos de un solo elemento de la lista de resultados.
- * @param itemWrapper - El objeto que contiene el musicResponsiveListItemRenderer.
- * @returns Un objeto CleanItem con los datos o null si falta información esencial.
- */
-function extractItemData(itemWrapper: ItemWrapper): CleanItem | null {
-  const renderer = itemWrapper.musicResponsiveListItemRenderer;
-  if (!renderer) return null;
-
-  try {
-    const videoId = renderer.playlistItemData?.videoId;
-    const title = renderer.flexColumns[0]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs[0]?.text;
-    const subtitle = renderer.flexColumns[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
-      .map(run => run.text)
-      .join('');
-
-    const thumbnails = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails;
-    const thumbnailUrl = thumbnails?.[thumbnails.length - 1]?.url;
-
-    // Solo retornamos el objeto si tenemos todos los datos esenciales
-    if (videoId && title && subtitle && thumbnailUrl) {
-      return { videoId, title, subtitle, thumbnailUrl };
+        // 1. Creamos el evento personalizado. El nombre 'update-song' es arbitrario.
+        const event = new CustomEvent('update-song', {
+          // 2. La información que queremos pasar va en la propiedad 'detail'.
+          detail: newSongData
+        });
+        
+        // 3. Despachamos el evento en el objeto 'window' para que esté disponible globalmente.
+        window.dispatchEvent(event);
+      }
+    } catch (error) {
+      console.error("Error al buscar actualizaciones:", error);
     }
-    
-    return null;
-  } catch (e) {
-    console.error("Error parseando un item:", e, itemWrapper);
-    return null;
-  }
-}
-
-/**
- * Transforma la respuesta completa de la API en una estructura de datos simple y organizada.
- * @param responseData - El objeto de respuesta completo de la API de YouTube Music.
- * @returns Un array de secciones limpias (CleanSection[]).
- */
-function parseYouTubeMusicResponse(responseData: YouTubeMusicSearchResponse): CleanSection[] {
-  const shelves = responseData?.contents?.tabbedSearchResultsRenderer?.tabs[0]?.tabRenderer?.content?.sectionListRenderer?.contents;
-
-  if (!shelves) {
-    console.error("No se encontró la ruta de contenido esperada en el JSON.");
-    return [];
   }
 
-  const results: CleanSection[] = [];
-
-  shelves.forEach((shelf: ShelfWrapper) => {
-    let sectionTitle: string | undefined;
-    let items: (CleanItem | null)[] = [];
-
-    // Maneja la sección de "Mejor resultado"
-    if (shelf.musicCardShelfRenderer) {
-      const card = shelf.musicCardShelfRenderer;
-      sectionTitle = card.header?.musicCardShelfHeaderBasicRenderer?.title?.runs[0]?.text || "Mejor Resultado";
-      items = (card.contents || []).map(extractItemData);
-    } 
-    // Maneja las secciones estándar (Canciones, Videos, etc.)
-    else if (shelf.musicShelfRenderer) {
-      const shelfRenderer = shelf.musicShelfRenderer;
-      sectionTitle = shelfRenderer.title?.runs[0]?.text;
-      items = (shelfRenderer.contents || []).map(extractItemData);
-    }
-
-    // Usamos un "type guard" para filtrar los nulos y que TypeScript sepa que el array resultante solo contiene CleanItem
-    const validItems: CleanItem[] = items.filter((item): item is CleanItem => item !== null);
-
-    if (sectionTitle && validItems.length > 0) {
-      results.push({ sectionTitle, items: validItems });
-    }
-  });
-
-  return results;
-}
-
-/**
- * Renderiza los datos ya simplificados en el DOM.
- * @param cleanData - Un array de secciones limpias listas para mostrar.
- */
-function renderResults(cleanData: CleanSection[]): void {
-  const container = document.getElementById('results-container');
-  if (!container) return; // Type guard para asegurar que el contenedor existe
-
-  let htmlContent = '';
-
-  cleanData.forEach((section: CleanSection) => {
-    htmlContent += `
-      <div class="section">
-        <h2 class="section-title">${section.sectionTitle}</h2>
-        <div class="items-grid">
-    `;
-
-    section.items.forEach((item: CleanItem) => {
-      htmlContent += `
-        <div class="item-card" data-videoid="${item.videoId}">
-          <img src="${item.thumbnailUrl}" alt="${item.title}">
-          <div class="title">${item.title}</div>
-          <div class="subtitle">${item.subtitle}</div>
-        </div>
-      `;
-    });
-
-    htmlContent += `
-        </div>
-      </div>
-    `;
-  });
-
-  container.innerHTML = htmlContent;
-}
-
-
-
+  // Hacemos una comprobación periódica para ver si la canción ha cambiado
+  setInterval(checkForUpdates, 10000); // Cada 10 segundos
 </script>

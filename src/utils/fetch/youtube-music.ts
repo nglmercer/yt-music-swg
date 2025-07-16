@@ -98,7 +98,27 @@ export interface YouTubeMusicSearchResponse {
     };
   };
 }
+// En un archivo como src/types.ts
+
+interface SongData {
+  album: string;
+  alternativeTitle: string;
+  artist: string;
+  elapsedSeconds: number;
+  imageSrc: string;
+  isPaused: boolean;
+  mediaType: 'AUDIO' | 'VIDEO';
+  playlistId: string;
+  songDuration: number;
+  tags: string[];
+  title: string;
+  uploadDate: string; // Opcionalmente, puedes usar `Date` si lo conviertes
+  url: string;
+  videoId: string;
+  views: number;
+}
 export type{
   ItemWrapper,
-  ShelfWrapper
+  ShelfWrapper,
+  SongData
 }
