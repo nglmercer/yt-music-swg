@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import type { SongData } from "../utils/fetch/youtube-music"; // Asegúrate de que esta ruta de importación sea correcta en tu proyecto
   import { YTMusicApi } from "../utils/fetch/fetchapi";
+  import {emitter} from "@utils/Emitter";
   async function nextOrprevious(number:number) {
     let result;
     if (Number(number) >= 0) {
@@ -29,17 +30,16 @@
   // --- MANEJO DE ACTUALIZACIONES EXTERNAS ---
 
   // Esta función se activa cuando se recibe el evento 'update-song'.
-  async function handleSongUpdate(event: Event) {
-    console.log("event",typeof event)
-    const customEvent = event as CustomEvent<SongData>;
-    songData = customEvent.detail;
-    elapsedSeconds = songData.elapsedSeconds || 0;
-    isPlaying = !songData.isPaused;
-    const volume_value = await YTMusicApi.getVolume();
-    if (volume_value?.state){
-      volumeLevel = volume_value.state;
-    }
-    console.log("volume_value", volume_value)
+  async function handleSongUpdate(newData: SongData) {
+      if (!newData) return;
+      songData = newData;
+      elapsedSeconds = songData.elapsedSeconds || 0;
+      isPlaying =!songData.isPaused;
+      const volume_value = await YTMusicApi.getVolume();
+      if (volume_value?.state){
+        volumeLevel = volume_value.state;
+      }
+      console.log("volume_value", volume_value)
   }
 
   // --- LÓGICA DEL CICLO DE VIDA ---
@@ -48,8 +48,7 @@
 
   onMount(() => {
     // Escucha eventos para actualizar la canción desde fuera del componente.
-    window.addEventListener('update-song', handleSongUpdate);
-
+    emitter.on('update-song', handleSongUpdate);
     // Inicia el temporizador para la barra de progreso.
     timer = window.setInterval(() => {
       if (songData && isPlaying && elapsedSeconds < songData.songDuration) {
@@ -60,7 +59,6 @@
 
   onDestroy(() => {
     // Limpia el listener y el intervalo para evitar fugas de memoria.
-    window.removeEventListener('update-song', handleSongUpdate);
     clearInterval(timer);
   });
 

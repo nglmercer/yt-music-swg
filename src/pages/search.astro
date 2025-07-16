@@ -3,8 +3,9 @@ import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Sidebar from '../components/Sidebar.astro';
 import Player from '../components/Player.svelte';
-import SearchBar from '../components/SearchBar.astro';
-
+import ResultsGrid from '../components/result/ResultsGrid.svelte';
+import ResponsiveContainer from '@layouts/ResponsiveContainer.svelte';
+import Playlist from '../components/PlaylistItems.svelte';
 // Get search query from URL parameters
 const url = new URL(Astro.request.url);
 const searchQuery = url.searchParams.get('q') || '';
@@ -16,111 +17,37 @@ const searchQuery = url.searchParams.get('q') || '';
   
   <!-- Main Content -->
   <div class="p-4 md:p-6 pb-24">
-    <div class="max-w-7xl mx-auto">
-      <!-- Search Section -->
-      <div class="mb-8">
-        <h1 class="text-2xl md:text-3xl font-bold mb-6">Buscar música</h1>
-        <div class="max-w-2xl">
-          <SearchBar />
-        </div>
-      </div>
-      
-      <!-- Search Results Container -->
-      <div id="results-container" class="space-y-8" data-search-query={searchQuery}>
-        <!-- Estado inicial: sugerencias de búsqueda -->
-        <div id="initial-state" class="text-center py-12">
-          <svg class="w-20 h-20 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-          <h2 class="text-xl font-semibold text-gray-300 mb-4">Encuentra tu música favorita</h2>
-          <p class="text-gray-400 mb-8">Busca canciones, artistas, álbumes y más</p>
-          
-          <!-- Sugerencias de búsqueda -->
-          <div class="max-w-md mx-auto">
-            <h3 class="text-lg font-medium text-gray-300 mb-4">Búsquedas populares</h3>
-            <div class="space-y-2">
-              <button class="search-suggestion w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors" data-query="rock clásico">
-                <div class="flex items-center space-x-3">
-                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                  <span class="text-gray-300">Rock clásico</span>
-                </div>
-              </button>
-              
-              <button class="search-suggestion w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors" data-query="pop latino">
-                <div class="flex items-center space-x-3">
-                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                  <span class="text-gray-300">Pop latino</span>
-                </div>
-              </button>
-              
-              <button class="search-suggestion w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors" data-query="jazz">
-                <div class="flex items-center space-x-3">
-                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                  <span class="text-gray-300">Jazz</span>
-                </div>
-              </button>
-              
-              <button class="search-suggestion w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors" data-query="reggaeton">
-                <div class="flex items-center space-x-3">
-                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                  <span class="text-gray-300">Reggaeton</span>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
+      <ResultsGrid
+          id="resultsGrid"
+          client:only="svelte"
+          on:videoSelected={(e:any) => console.log('Video:', e.detail)}
+        />
+          <ResponsiveContainer>
+    
+    <!-- Contenido para la columna izquierda -->
+    <div slot="left-content">
+      <!-- Aquí iría tu imagen -->
+      <img 
+        src="https://i.imgur.com/u5zDm8h.png" 
+        alt="Portada del álbum Kocchi no Kento" 
+        class="w-full h-auto object-cover rounded-md aspect-square"
+      >
+    </div>
+
+    <!-- Contenido para la columna derecha -->
+    <div slot="right-content">
+      <!-- Aquí iría tu lista de canciones o cualquier otro elemento -->
+      <div class="flex flex-col space-y-4">
+        <Playlist client:only="svelte"/>
+
+
       </div>
     </div>
+
+  </ResponsiveContainer>
   </div>
   
   <!-- Player at the bottom -->
   <Player client:only="svelte" />
 
 </MainLayout>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const resultsContainer = document.getElementById('results-container');
-    const searchQuery = resultsContainer?.getAttribute('data-search-query');
-    const searchInput = document.getElementById('search-input') as HTMLInputElement;
-    const initialState = document.getElementById('initial-state');
-    
-    // If there's a search query in the URL, populate the input and perform search
-    if (searchQuery && searchInput) {
-      searchInput.value = searchQuery;
-      // Hide initial state and trigger search
-      if (initialState) {
-        initialState.style.display = 'none';
-      }
-      // Trigger search with the URL query
-      const event = new KeyboardEvent('keypress', { key: 'Enter' });
-      searchInput.dispatchEvent(event);
-    }
-    
-    const searchSuggestions = document.querySelectorAll('.search-suggestion');
-    
-    searchSuggestions.forEach(suggestion => {
-      suggestion.addEventListener('click', () => {
-        const query = suggestion.getAttribute('data-query');
-        if (query && searchInput) {
-          searchInput.value = query;
-          // Hide initial state
-          if (initialState) {
-            initialState.style.display = 'none';
-          }
-          // Trigger search
-          const event = new KeyboardEvent('keypress', { key: 'Enter' });
-          searchInput.dispatchEvent(event);
-        }
-      });
-    });
-  });
-</script>

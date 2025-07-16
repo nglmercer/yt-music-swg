@@ -87,7 +87,40 @@ import "../styles/global.css";
   </script>
 </body>
 </html>
+<script>
+    import { YTMusicApi } from "../utils/fetch/fetchapi";
+    import { emitter } from "@utils/Emitter";
+  // Función para obtener la canción y despachar el evento
+  async function checkForUpdates() {
+    try {
+      console.log('Buscando actualización de la canción...');
+      const newSongData = await YTMusicApi.getCurrentSong();
 
+      if (newSongData) {
+        console.log('Nuevos datos encontrados. Despachando evento "update-song".');
+        emitter.emit('update-song', newSongData);
+      }
+    } catch (error) {
+      console.error("Error al buscar actualizaciones:", error);
+    }
+  }
+  checkForUpdates()
+  // Hacemos una comprobación periódica para ver si la canción ha cambiado
+  setInterval(checkForUpdates, 10000); // Cada 10 segundos
+  interface QueueItem {
+    autoPlaying: boolean,
+    continuation?: string,
+    items: any[]
+  }
+  async function getQueue() {
+    const queue:QueueItem|null  = await YTMusicApi.getQueue();
+    console.log("queue: ", queue?.items[0])
+    emitter.emit('updatePlaylist', queue?.items)
+    return queue
+  }
+  getQueue()
+  setInterval(getQueue, 10000);
+</script>
 <style is:global>
   /* Scrollbar personalizado */
   ::-webkit-scrollbar {

@@ -80,31 +80,7 @@ import Playlist from '../components/PlaylistItems.svelte'
       
       <!-- Featured Content -->
       <div class="space-y-8">
-        <section>
-          <h2 class="text-xl md:text-2xl font-bold mb-4">Escucha de nuevo</h2>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-            <!-- Album Cards -->
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div class="group cursor-pointer">
-                <div class="aspect-square bg-gray-700 rounded-lg mb-2 md:mb-3 relative overflow-hidden">
-                  <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-80"></div>
-                  <div class="absolute inset-0 flex items-center justify-center">
-                    <svg class="w-8 h-8 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-                    </svg>
-                  </div>
-                  <button class="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-1.5 md:p-2 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </button>
-                </div>
-                <h3 class="text-sm md:text-base font-medium truncate">Álbum {i + 1}</h3>
-                <p class="text-sm text-gray-400 truncate">Artista {i + 1}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+
         <Playlist client:only="svelte"/>
       </div>
     </div>
@@ -112,49 +88,3 @@ import Playlist from '../components/PlaylistItems.svelte'
   
   <!-- Player at the bottom -->
   <Player client:only="svelte" />
-<script>
-    import { YTMusicApi } from "../utils/fetch/fetchapi";
-    import { exportarJSON } from "../utils/jsonbackups/export";
-  import type { SongData } from "../utils/fetch/youtube-music";
-  // Función para obtener la canción y despachar el evento
-  async function checkForUpdates() {
-    try {
-      console.log('Buscando actualización de la canción...');
-      const newSongData = await YTMusicApi.getCurrentSong();
-
-      if (newSongData) {
-        console.log('Nuevos datos encontrados. Despachando evento "update-song".');
-        
-        // 1. Creamos el evento personalizado. El nombre 'update-song' es arbitrario.
-        const event = new CustomEvent('update-song', {
-          // 2. La información que queremos pasar va en la propiedad 'detail'.
-          detail: newSongData
-        });
-        
-        // 3. Despachamos el evento en el objeto 'window' para que esté disponible globalmente.
-        window.dispatchEvent(event);
-      }
-    } catch (error) {
-      console.error("Error al buscar actualizaciones:", error);
-    }
-  }
-  checkForUpdates()
-  // Hacemos una comprobación periódica para ver si la canción ha cambiado
-  setInterval(checkForUpdates, 10000); // Cada 10 segundos
-  interface QueueItem {
-    autoPlaying: boolean,
-    continuation?: string,
-    items: any[]
-  }
-  async function getQueue() {
-    const queue:QueueItem|null  = await YTMusicApi.getQueue();
-    console.log("queue: ", queue?.items[0])
-    const event = new CustomEvent('updatePlaylist',{
-      detail: queue?.items
-    })
-    window.dispatchEvent(event);
-    return queue
-  }
-  getQueue()
-  setInterval(getQueue, 10000);
-</script>

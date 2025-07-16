@@ -166,7 +166,41 @@
 </div>
 
 <script>
+    import { parseYouTubeMusicResponse, renderResults } from '../utils/fetch/youtube-music-parser';
+  import type { YouTubeMusicSearchResponse } from '../utils/fetch/youtube-music';
+  import { YouTubeMusicApi } from "../utils/fetch/fetchapi";
+  import { emitter } from '@utils/Emitter';
+  const Port = 26538;
+	async function getPlaylist(query:string) {
+		const api = new YouTubeMusicApi("http://localhost:"+Port);
+		const result = await api.search({
+			query: query,
+		})
+		return result;
+	}
+
+  async function performSearch(query: string) {    
+    const result = await getPlaylist(query)
+    // Parsear y renderizar resultados
+    const cleanData = parseYouTubeMusicResponse(result);
+    emitter.emit('dataUpdated',cleanData);
+  }
   document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+
+
+    // Búsqueda en tiempo real (opcional, con debounce)
+    let searchTimeout: number;
+    searchInput?.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = window.setTimeout(() => {
+        const query = searchInput.value.trim();
+        if (query.length > 2) {
+          performSearch(query);
+        }
+      }, 500);
+    });
+
     // Desktop search form
     const navbarSearchForm = document.getElementById('navbar-search-form');
     const navbarSearchInput = document.getElementById('navbar-search-input') as HTMLInputElement;
@@ -181,11 +215,9 @@
     
     // Function to redirect to search page with query
     function redirectToSearch(query: string) {
-      if (query.trim()) {
-        window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
-      } else {
-        window.location.href = '/search';
-      }
+      if (!query || query.length === 0) return;
+      console.log("redirectToSearch",query)
+      performSearch(query)
     }
     
     // Desktop search form submission

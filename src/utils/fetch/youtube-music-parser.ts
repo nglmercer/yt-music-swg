@@ -89,7 +89,7 @@ export function renderResults(cleanData: CleanSection[]): void {
   if (!container) return; // Type guard para asegurar que el contenedor existe
 
   let htmlContent = '';
-
+  console.log("Limpiando datos",cleanData)
   cleanData.forEach((section: CleanSection) => {
     htmlContent += `
       <div class="mb-8">

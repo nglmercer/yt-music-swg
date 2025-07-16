@@ -215,8 +215,13 @@ class BaseApi {
 export type RepeatMode = 'NONE' | 'ALL' | 'ONE';
 
 /** Posición para insertar una canción en la cola. */
-export type InsertPosition = 'INSERT_AT_END' | 'INSERT_AT_START';
-
+// Valores válidos como constante
+const VALID_INSERT_POSITIONS = ['INSERT_AT_END', 'INSERT_AFTER_CURRENT_VIDEO'] as const;
+export function isValidInsertPosition(value: string): value is InsertPosition {
+  return VALID_INSERT_POSITIONS.includes(value as InsertPosition);
+}
+// Tipo derivado de la constante
+export type InsertPosition = typeof VALID_INSERT_POSITIONS[number];
 /** Cuerpo para la petición de búsqueda. */
 export interface SearchBody {
   query: string;
@@ -354,6 +359,11 @@ class YouTubeMusicApi extends BaseApi {
    * @param insertPosition - Dónde insertar la canción.
    */
   async addToQueue(videoId: string, insertPosition: InsertPosition = 'INSERT_AT_END'): Promise<void> {
+    // Validación adicional (opcional)
+    if (!isValidInsertPosition(insertPosition)) {
+      throw new Error(`Invalid insertPosition: ${insertPosition}. Valid options: ${VALID_INSERT_POSITIONS.join(', ')}`);
+    }
+    
     const url = `${this.host}/api/v1/queue`;
     const body = { videoId, insertPosition };
     return this.request(this.http.post(url, body, { headers: this._authHeaders() }));
