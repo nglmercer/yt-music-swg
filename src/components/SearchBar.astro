@@ -1,0 +1,118 @@
+---
+// Componente de barra de búsqueda mejorado
+---
+
+<div class="search-container relative">
+  <div class="relative">
+    <input
+      id="search-input"
+      type="text"
+      placeholder="Buscar canciones, artistas, álbumes"
+      class="w-full bg-gray-800 border border-gray-700 rounded-full py-2 px-4 pl-12 focus:outline-none focus:border-gray-500 focus:bg-gray-700 transition-colors text-white"
+    />
+    <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </div>
+    <button 
+      id="search-button"
+      class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-700 transition-colors"
+    >
+      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </button>
+  </div>
+  
+  <!-- Loading indicator -->
+  <div id="search-loading" class="hidden absolute top-full left-0 right-0 mt-2 p-4 bg-gray-800 rounded-lg">
+    <div class="flex items-center space-x-2">
+      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+      <span class="text-sm text-gray-300">Buscando...</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { parseYouTubeMusicResponse, renderResults } from '../utils/fetch/youtube-music-parser';
+  import type { YouTubeMusicSearchResponse } from '../utils/fetch/youtube-music';
+  import { YouTubeMusicApi } from "../utils/fetch/fetchapi";
+  const Port = 26538;
+	async function getPlaylist(query:string) {
+		const api = new YouTubeMusicApi("http://localhost:"+Port);
+		const result = await api.search({
+			query: query,
+		})
+		return result;
+	}
+
+
+  async function performSearch(query: string) {
+    const loadingElement = document.getElementById('search-loading');
+    const resultsContainer = document.getElementById('results-container');
+    
+    if (loadingElement) {
+      loadingElement.classList.remove('hidden');
+    }
+
+    // Simular delay de API
+
+      const result = await getPlaylist(query)
+      // Parsear y renderizar resultados
+      const cleanData = parseYouTubeMusicResponse(result);
+      renderResults(cleanData);
+
+      // Mostrar mensaje si no hay resultados
+      if (cleanData.length === 0 && resultsContainer) {
+        resultsContainer.innerHTML = `
+          <div class="text-center py-12">
+            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-300 mb-2">No se encontraron resultados</h3>
+            <p class="text-gray-400">Intenta con otros términos de búsqueda</p>
+          </div>
+        `;
+      }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const searchButton = document.getElementById('search-button');
+    const initialState = document.getElementById('initial-state');
+
+    function handleSearch() {
+      const query = searchInput?.value.trim();
+      if (query && query.length > 0) {
+        // Hide initial state when performing search
+        if (initialState) {
+          initialState.style.display = 'none';
+        }
+        performSearch(query);
+      }
+    }
+
+    // Búsqueda al hacer clic en el botón
+    searchButton?.addEventListener('click', handleSearch);
+
+    // Búsqueda al presionar Enter
+    searchInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleSearch();
+      }
+    });
+
+    // Búsqueda en tiempo real (opcional, con debounce)
+    let searchTimeout: number;
+    searchInput?.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = window.setTimeout(() => {
+        const query = searchInput.value.trim();
+        if (query.length > 2) {
+          performSearch(query);
+        }
+      }, 500);
+    });
+  });
+</script>

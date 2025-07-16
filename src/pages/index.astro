@@ -1,11 +1,275 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Player from '../components/Player.astro';
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<MainLayout title="YouTube Music">
+  <Navbar slot="header" />
+  <Sidebar slot="sidebar" />
+  
+  <!-- Main Content -->
+  <div class="p-4 md:p-6 pb-24">
+    <div class="max-w-7xl mx-auto">
+      <!-- Welcome Section -->
+      <div class="mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold mb-2">Bienvenido de nuevo</h1>
+        <p class="text-gray-400">Tu música, siempre contigo</p>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm md:text-base font-medium truncate">Canciones que te gustan</h3>
+              <p class="text-sm text-gray-400">15 canciones</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm md:text-base font-medium truncate">Descargas</h3>
+              <p class="text-sm text-gray-400">8 canciones</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm md:text-base font-medium truncate">Listas de reproducción</h3>
+              <p class="text-sm text-gray-400">3 listas</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm md:text-base font-medium truncate">Mi SuperMix</h3>
+              <p class="text-sm text-gray-400">Basado en tu actividad</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Featured Content -->
+      <div class="space-y-8">
+        <section>
+          <h2 class="text-xl md:text-2xl font-bold mb-4">Escucha de nuevo</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+            <!-- Album Cards -->
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div class="group cursor-pointer">
+                <div class="aspect-square bg-gray-700 rounded-lg mb-2 md:mb-3 relative overflow-hidden">
+                  <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-80"></div>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <svg class="w-8 h-8 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                    </svg>
+                  </div>
+                  <button class="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-1.5 md:p-2 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+                </div>
+                <h3 class="text-sm md:text-base font-medium truncate">Álbum {i + 1}</h3>
+                <p class="text-sm text-gray-400 truncate">Artista {i + 1}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+        
+        <section>
+          <h2 class="text-xl md:text-2xl font-bold mb-4">Recomendado para ti</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div class="group cursor-pointer">
+                <div class="aspect-square bg-gray-700 rounded-lg mb-2 md:mb-3 relative overflow-hidden">
+                  <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-orange-500 opacity-80"></div>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <svg class="w-8 h-8 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                    </svg>
+                  </div>
+                  <button class="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-1.5 md:p-2 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+                </div>
+                <h3 class="text-sm md:text-base font-medium truncate">Playlist {i + 1}</h3>
+                <p class="text-sm text-gray-400 truncate">Mix personalizado</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Player at the bottom -->
+  <Player />
+<script>
+	import { YouTubeMusicApi } from "../utils/fetch/fetchapi";
+	import type { YouTubeMusicSearchResponse,CleanSection,CleanItem,ItemWrapper,ShelfWrapper  } from "../utils/fetch/youtube-music"
+	const Port = 26538;
+	async function getPlaylist() {
+		const api = new YouTubeMusicApi("http://localhost:"+Port);
+		const result = await api.search({
+			query: "sekai no owari",
+		})
+		return result;
+	}
+	document.addEventListener('DOMContentLoaded',async () => {
+		console.log('DOMContentLoaded');
+		const result = await getPlaylist();
+		console.log("result",result);
+		        // --- EJECUCIÓN ---
+        // 1. Parseamos el JSON gigante para obtener datos limpios
+        const cleanResults = parseYouTubeMusicResponse(result);
+        
+        // 2. Mostramos los datos limpios en la consola para depurar
+        console.log('Datos simplificados:', cleanResults);
+
+        // 3. Renderizamos los datos en la página
+        renderResults(cleanResults);
+	});
+/**
+ * Extrae y simplifica los datos de un solo elemento de la lista de resultados.
+ * @param itemWrapper - El objeto que contiene el musicResponsiveListItemRenderer.
+ * @returns Un objeto CleanItem con los datos o null si falta información esencial.
+ */
+function extractItemData(itemWrapper: ItemWrapper): CleanItem | null {
+  const renderer = itemWrapper.musicResponsiveListItemRenderer;
+  if (!renderer) return null;
+
+  try {
+    const videoId = renderer.playlistItemData?.videoId;
+    const title = renderer.flexColumns[0]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs[0]?.text;
+    const subtitle = renderer.flexColumns[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
+      .map(run => run.text)
+      .join('');
+
+    const thumbnails = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails;
+    const thumbnailUrl = thumbnails?.[thumbnails.length - 1]?.url;
+
+    // Solo retornamos el objeto si tenemos todos los datos esenciales
+    if (videoId && title && subtitle && thumbnailUrl) {
+      return { videoId, title, subtitle, thumbnailUrl };
+    }
+    
+    return null;
+  } catch (e) {
+    console.error("Error parseando un item:", e, itemWrapper);
+    return null;
+  }
+}
+
+/**
+ * Transforma la respuesta completa de la API en una estructura de datos simple y organizada.
+ * @param responseData - El objeto de respuesta completo de la API de YouTube Music.
+ * @returns Un array de secciones limpias (CleanSection[]).
+ */
+function parseYouTubeMusicResponse(responseData: YouTubeMusicSearchResponse): CleanSection[] {
+  const shelves = responseData?.contents?.tabbedSearchResultsRenderer?.tabs[0]?.tabRenderer?.content?.sectionListRenderer?.contents;
+
+  if (!shelves) {
+    console.error("No se encontró la ruta de contenido esperada en el JSON.");
+    return [];
+  }
+
+  const results: CleanSection[] = [];
+
+  shelves.forEach((shelf: ShelfWrapper) => {
+    let sectionTitle: string | undefined;
+    let items: (CleanItem | null)[] = [];
+
+    // Maneja la sección de "Mejor resultado"
+    if (shelf.musicCardShelfRenderer) {
+      const card = shelf.musicCardShelfRenderer;
+      sectionTitle = card.header?.musicCardShelfHeaderBasicRenderer?.title?.runs[0]?.text || "Mejor Resultado";
+      items = (card.contents || []).map(extractItemData);
+    } 
+    // Maneja las secciones estándar (Canciones, Videos, etc.)
+    else if (shelf.musicShelfRenderer) {
+      const shelfRenderer = shelf.musicShelfRenderer;
+      sectionTitle = shelfRenderer.title?.runs[0]?.text;
+      items = (shelfRenderer.contents || []).map(extractItemData);
+    }
+
+    // Usamos un "type guard" para filtrar los nulos y que TypeScript sepa que el array resultante solo contiene CleanItem
+    const validItems: CleanItem[] = items.filter((item): item is CleanItem => item !== null);
+
+    if (sectionTitle && validItems.length > 0) {
+      results.push({ sectionTitle, items: validItems });
+    }
+  });
+
+  return results;
+}
+
+/**
+ * Renderiza los datos ya simplificados en el DOM.
+ * @param cleanData - Un array de secciones limpias listas para mostrar.
+ */
+function renderResults(cleanData: CleanSection[]): void {
+  const container = document.getElementById('results-container');
+  if (!container) return; // Type guard para asegurar que el contenedor existe
+
+  let htmlContent = '';
+
+  cleanData.forEach((section: CleanSection) => {
+    htmlContent += `
+      <div class="section">
+        <h2 class="section-title">${section.sectionTitle}</h2>
+        <div class="items-grid">
+    `;
+
+    section.items.forEach((item: CleanItem) => {
+      htmlContent += `
+        <div class="item-card" data-videoid="${item.videoId}">
+          <img src="${item.thumbnailUrl}" alt="${item.title}">
+          <div class="title">${item.title}</div>
+          <div class="subtitle">${item.subtitle}</div>
+        </div>
+      `;
+    });
+
+    htmlContent += `
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = htmlContent;
+}
+
+
+
+</script>
