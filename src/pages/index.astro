@@ -106,10 +106,6 @@ import NowPlaying from '../components/NowPlaying.svelte'
           </div>
         </section>
         
-        <section>
-          <h2 class="text-xl md:text-2xl font-bold mb-4">Recomendado para ti</h2>
-          <NowPlaying client:only="svelte"></NowPlaying>
-        </section>
       </div>
     </div>
   </div>
@@ -117,17 +113,14 @@ import NowPlaying from '../components/NowPlaying.svelte'
   <!-- Player at the bottom -->
   <Player client:only="svelte" />
 <script>
-  import { YouTubeMusicApi } from "../utils/fetch/fetchapi";
+    import { YTMusicApi } from "../utils/fetch/fetchapi";
+    import { exportarJSON } from "../utils/jsonbackups/export";
   import type { SongData } from "../utils/fetch/youtube-music";
-
-  const Port = 26538;
-  const api = new YouTubeMusicApi(`http://localhost:${Port}`);
-
   // Función para obtener la canción y despachar el evento
   async function checkForUpdates() {
     try {
       console.log('Buscando actualización de la canción...');
-      const newSongData = await api.getCurrentSong();
+      const newSongData = await YTMusicApi.getCurrentSong();
 
       if (newSongData) {
         console.log('Nuevos datos encontrados. Despachando evento "update-song".');
@@ -145,7 +138,18 @@ import NowPlaying from '../components/NowPlaying.svelte'
       console.error("Error al buscar actualizaciones:", error);
     }
   }
-
+  checkForUpdates()
   // Hacemos una comprobación periódica para ver si la canción ha cambiado
   setInterval(checkForUpdates, 10000); // Cada 10 segundos
+  interface QueueItem {
+    autoPlaying: boolean,
+    continuation?: string,
+    items: any[]
+  }
+  async function getQueue() {
+    const queue:QueueItem|null  = await YTMusicApi.getQueue();
+    console.log("queue: ", queue?.items[0])
+    return queue
+  }
+  getQueue()
 </script>

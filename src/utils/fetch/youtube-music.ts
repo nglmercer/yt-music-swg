@@ -1,4 +1,5 @@
 // --- TIPOS PARA LOS DATOS LIMPIOS Y FINALES ---
+import type{ Root }from './queue'
 
 /**
  * Representa un único resultado de búsqueda ya procesado y simplificado.
@@ -99,7 +100,11 @@ export interface YouTubeMusicSearchResponse {
   };
 }
 // En un archivo como src/types.ts
-
+interface QueueInfo {
+    autoPlaying: boolean,
+    continuation?: string,
+    items: Root[],
+}
 interface SongData {
   album: string;
   alternativeTitle: string;
@@ -120,5 +125,6 @@ interface SongData {
 export type{
   ItemWrapper,
   ShelfWrapper,
-  SongData
+  SongData,
+  QueueInfo
 }

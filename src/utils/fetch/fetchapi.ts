@@ -1,10 +1,26 @@
 import { safeParse } from "../jsonutils/safeparse";
+import type { 
+  CleanItem, 
+  CleanSection, 
+  ItemWrapper, 
+  ShelfWrapper, 
+  YouTubeMusicSearchResponse,
+  QueueInfo,
+  SongData,
+} from './youtube-music';
 // Definimos los tipos para las opciones de fetch y para el cuerpo de la solicitud
 type FetchOptions = RequestInit & {
   headers?: Record<string, string>;
 };
 
 type RequestBody = Record<string, any> | FormData;
+
+// Interfaces para tipar la información del usuario y los datos almacenados
+interface UserInfo {
+  token?: string;
+  user?: Record<string, any>;
+  [key: string]: any; 
+}
 
 // Constantes de URLs con tipado explícito
 const windowurl: string = typeof window !== "undefined" ? window.location.origin : "";
@@ -141,13 +157,6 @@ function getParams(paramNames: string[] = []): Record<string, string> {
 }
       
 
-// Interfaces para tipar la información del usuario y los datos almacenados
-interface UserInfo {
-  token?: string;
-  user?: Record<string, any>;
-  [key: string]: any; 
-}
-
 // Clase BaseApi con tipado fuerte
 class BaseApi {
   host: string;
@@ -208,30 +217,6 @@ export type RepeatMode = 'NONE' | 'ALL' | 'ONE';
 /** Posición para insertar una canción en la cola. */
 export type InsertPosition = 'INSERT_AT_END' | 'INSERT_AT_START';
 
-/** Información detallada de una canción. */
-export interface SongInfo {
-  title: string;
-  artist: string;
-  views: number;
-  uploadDate: string;
-  imageSrc: string;
-  isPaused: boolean;
-  songDuration: number;
-  elapsedSeconds: number;
-  url: string;
-  album: string;
-  videoId: string;
-  playlistId: string;
-  mediaType: 'AUDIO' | 'VIDEO';
-}
-
-/** Información de la cola de reproducción (estructura a definir según la respuesta real). */
-export interface QueueInfo {
-  // El ejemplo de la API es un objeto vacío {}, así que lo dejamos flexible.
-  // Podrías añadir propiedades específicas si conoces la estructura.
-  [key: string]: any;
-}
-
 /** Cuerpo para la petición de búsqueda. */
 export interface SearchBody {
   query: string;
@@ -239,12 +224,9 @@ export interface SearchBody {
   continuation?: string;
 }
 
-/** Respuesta de la API de búsqueda (estructura a definir). */
-export interface SearchResult {
-  // El ejemplo de la API es un objeto vacío {}, así que lo dejamos flexible.
-  [key: string]: any;
+export interface VolumeLevel {
+  state: number
 }
-
 
 // --- Implementación de la Clase para la API de YouTube Music ---
 
@@ -352,7 +334,7 @@ class YouTubeMusicApi extends BaseApi {
   /** Obtiene la información de la canción actual.
    * @returns Una promesa con la información de la canción o `null` si no hay.
    */
-  async getCurrentSong(): Promise<SongInfo | null> {
+  async getCurrentSong(): Promise<SongData | null> {
     const url = `${this.host}/api/v1/song`;
     return this.request(this.http.get(url, { headers: this._authHeaders() }));
   }
@@ -398,9 +380,23 @@ class YouTubeMusicApi extends BaseApi {
    * @param body - El cuerpo de la solicitud con el query de búsqueda.
    * @returns Una promesa con los resultados de la búsqueda.
    */
-  async search(body: SearchBody): Promise<SearchResult> {
+  async search(body: SearchBody): Promise<YouTubeMusicSearchResponse> {
     const url = `${this.host}/api/v1/search`;
     return this.request(this.http.post(url, body, { headers: this._authHeaders() }));
+  }
+  // --- volume ---
+  async getVolume(): Promise<VolumeLevel> {
+    const url = `${this.host}/api/v1/volume`;
+    return this.request(this.http.get(url, { headers: this._authHeaders() }));
+  }
+  async setVolume(volume: number): Promise<void> {
+    const url = `${this.host}/api/v1/volume`;
+    return this.request(this.http.post(url, { volume }, { headers: this._authHeaders() }));
+  }
+  //toggle-mute
+  async toggleMute(): Promise<void> {
+    const url = `${this.host}/api/v1/toggle-mute`;
+    return this.request(this.http.post(url, {}, { headers: this._authHeaders() }));
   }
 }
 const YTMusicApi = new YouTubeMusicApi(`http://localhost:${PORT}`);
