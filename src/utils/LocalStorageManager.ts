@@ -178,6 +178,9 @@ class LocalStorageManager<T extends object> {
 }
 
 export default LocalStorageManager;
+export {
+  LocalStorageManager
+}
   // Ejemplo de uso:
 /*   const itemStorage = new LocalStorageManager("items");
   

@@ -2,14 +2,20 @@
   import { onMount } from 'svelte';
   import type { Root, PlaylistPanelVideoRenderer } from '../utils/fetch/queue';
   import { emitter } from '@utils/Emitter';
+  import { LocalStorageData } from '@components/Instances'
   import { YTMusicApi } from '@utils/fetch/fetchapi';
   let playlistItems: Root[] = [];
-
-  onMount(() => {
+  onMount(async () => {
     emitter.on('updatePlaylist', (data: Root[]) => {
       if (!data) return;
       playlistItems = data;
+      LocalStorageData.set('playlist', playlistItems);
     });
+    const saveData = await LocalStorageData.get('playlist')
+    console.log('saveData', saveData);
+    if (saveData) {
+      playlistItems = saveData;
+    }
   });
 
   function play(data:PlaylistPanelVideoRenderer,index:number) {

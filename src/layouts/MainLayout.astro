@@ -91,12 +91,18 @@ import Modal from '@components/commons/Modal.svelte'
 <script>
     import { YTMusicApi } from "../utils/fetch/fetchapi";
     import { emitter } from "@utils/Emitter";
+    import { addImageSrcListenerWithCallback} from "@utils/listeners/ImageOnchange";
+    import LocalStorageManager from "@utils/LocalStorageManager";
   // Función para obtener la canción y despachar el evento
   async function checkForUpdates() {
     try {
       console.log('Buscando actualización de la canción...');
       const newSongData = await YTMusicApi.getCurrentSong();
-      const ElementImage = document.getElementById("album-cover-main-image") as HTMLImageElement;
+      const ElementImageId = 'album-cover-main-image'
+      const ElementImage = document.getElementById(ElementImageId) as HTMLImageElement;
+      addImageSrcListenerWithCallback(ElementImageId,(src:string)=>{
+          
+      })
       if (ElementImage) {
         ElementImage.src = String(newSongData?.imageSrc);
       }

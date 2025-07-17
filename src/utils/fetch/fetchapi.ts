@@ -1,4 +1,4 @@
-import { safeParse } from "../jsonutils/safeparse";
+import { safeParse } from "@utils/jsonutils/safeparse";
 import type { 
   CleanItem, 
   CleanSection, 
@@ -8,122 +8,38 @@ import type {
   QueueInfo,
   SongData,
 } from './youtube-music';
-// Definimos los tipos para las opciones de fetch y para el cuerpo de la solicitud
-type FetchOptions = RequestInit & {
-  headers?: Record<string, string>;
-};
-
-type RequestBody = Record<string, any> | FormData;
-
+import {
+  http
+} from '@utils/fetch/commons/httpservice'
 // Interfaces para tipar la información del usuario y los datos almacenados
 interface UserInfo {
   token?: string;
   user?: Record<string, any>;
   [key: string]: any; 
 }
-
+interface configData {
+  PORT: string | number;
+  URL: string;
+  devURL: string;
+  baseURL: string;
+  actualBaseApi: string;
+}
 // Constantes de URLs con tipado explícito
 const windowurl: string = typeof window !== "undefined" ? window.location.origin : "";
 const baseurlApi: string = windowurl;
 const PORT = '26538'
-const baseurlTestApi: string = "http://localhost"+PORT; // API de desarrollo
-const mockApi: string = "http://localhost"+PORT; // Otra opción de mock
-
-// Determina la URL base de la API según el entorno
+const baseurlTestApi: string = "http://localhost:"+PORT; // API de desarrollo
+const mockApi: string = "http://localhost:"+PORT; // Otra opción de mock
 const actualBaseApi: string =
   import.meta.env.MODE === "development" ? baseurlTestApi : baseurlApi;
-
-// --- NUEVA FUNCIÓN PARA MANEJAR RESPUESTAS ---
-async function handleResponse<T>(res: Response): Promise<T | any> { // <-- CAMBIO 1: El retorno ahora es Promise<T | undefined>
-  if (res.status === 204) {
-    // Ahora es seguro devolver undefined porque está en el tipo de retorno.
-    return Promise.resolve(undefined);
-  }
-
-  const text = await res.text();
-
-  if (!text) {
-    // También es seguro devolver undefined aquí.
-    return Promise.resolve(undefined);
-  }
-
-  try {
-    // Tu safeParse es ideal aquí. El resultado se casteará al tipo T.
-    return safeParse(text) as T;
-  } catch (error) {
-    console.error("Falló el análisis de la respuesta:", error);
-    return Promise.reject(new Error("La respuesta no pudo ser analizada."));
-  }
+const defaultConfig:configData = {
+  PORT: '26538',
+  URL: windowurl,
+  devURL: "http://localhost:",
+  baseURL: baseurlApi,
+  actualBaseApi: actualBaseApi
 }
-
-// --- TU OBJETO HTTP MODIFICADO ---
-const http = {
-  get: <T>(url: string, options: FetchOptions = {}): Promise<T> => {
-    return fetch(url, {
-      method: 'GET',
-      ...options
-    }).then(handleResponse); // Usamos el manejador de respuesta
-  },
-
-  post: <T>(url: string, body: RequestBody = {}, options: FetchOptions = {}): Promise<T> => {
-    if (body instanceof FormData) {
-      const filteredHeaders = Object.fromEntries(
-        Object.entries(options.headers || {}).filter(([key]) => key.toLowerCase() !== 'content-type')
-      );
-
-      const filteredOptions = { ...options, headers: filteredHeaders };
-
-      return fetch(url, {
-        method: 'POST',
-        body: body,
-        ...filteredOptions
-      }).then(handleResponse); // Usamos el manejador de respuesta
-    } else {
-      const filteredOptions = { ...options };
-      
-      return fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {})
-        },
-        body: JSON.stringify(body), // Usamos JSON.stringify para el cuerpo
-        ...filteredOptions
-      }).then(handleResponse); // Usamos el manejador de respuesta
-    }
-  },
-
-  put: <T>(url: string, body: RequestBody = {}, options: FetchOptions = {}): Promise<T> => {
-    return fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {})
-      },
-      body: JSON.stringify(body), // Usamos JSON.stringify para el cuerpo
-      ...options
-    }).then(handleResponse); // Usamos el manejador de respuesta
-  },
-
-  patch: <T>(url: string, body: RequestBody = {}, options: FetchOptions = {}): Promise<T> => {
-    return fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-       ...(options.headers || {})
-      },
-      body: JSON.stringify(body), // Usamos JSON.stringify para el cuerpo
-     ...options
-    }).then(handleResponse); // Usamos el manejador de respuesta
-  },
-
-  delete: <T>(url: string, options: FetchOptions = {}): Promise<T> => {
-    return fetch(url, {
-      method: 'DELETE',
-      ...options
-    }).then(handleResponse); // Usamos el manejador de respuesta
-  }
-};
+// Determina la URL base de la API según el entorno
 
 // Polyfill de Storage para entornos de Server-Side Rendering (SSR)
 const ssrSafeStorage: Storage = {
@@ -139,35 +55,6 @@ const ssrSafeStorage: Storage = {
 const localStorage: Storage = typeof window !== 'undefined' 
   ? (window.localStorage || ssrSafeStorage) 
   : ssrSafeStorage;
-
-/**
- * Obtiene parámetros de la URL, ya sea del query string o de la ruta.
- * @param paramNames - Nombres de los parámetros a extraer de la ruta.
- * @returns Un objeto con los parámetros.
- */
-function getParams(paramNames: string[] = []): Record<string, string> {
-  if (typeof window === 'undefined') {
-    return {};
-  }
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  let paramsObject = Object.fromEntries(urlParams.entries());
-
-  if (Object.keys(paramsObject).length === 0) {
-    const path = window.location.pathname;
-    const parts = path.split('/').filter(Boolean);
-
-    if (parts.length >= paramNames.length) {
-      paramsObject = {};
-      for (let i = 0; i < paramNames.length; i++) {
-        paramsObject[paramNames[i]] = parts[i];
-      }
-    }
-  }
-
-  return paramsObject;
-}
-      
 
 // Clase BaseApi con tipado fuerte
 class BaseApi {
@@ -424,8 +311,8 @@ class YouTubeMusicApi extends BaseApi {
     return this.request(this.http.post(url, {}, { headers: this._authHeaders() }));
   }
 }
-const YTMusicApi = new YouTubeMusicApi(`http://localhost:${PORT}`);
-
+const YTMusicApi = new YouTubeMusicApi(defaultConfig.devURL +defaultConfig.PORT);
+console.log("defaultConfig.devURL +defaultConfig.PORT",defaultConfig.devURL +defaultConfig.PORT)
 export {
   YouTubeMusicApi,
   PORT,
