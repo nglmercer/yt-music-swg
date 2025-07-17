@@ -184,6 +184,7 @@
     // Parsear y renderizar resultados
     const cleanData = parseYouTubeMusicResponse(result);
     emitter.emit('dataUpdated',cleanData);
+    return result
   }
   document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
@@ -214,10 +215,11 @@
     const mobileSearchSuggestions = document.querySelectorAll('.mobile-search-suggestion');
     
     // Function to redirect to search page with query
-    function redirectToSearch(query: string) {
+    async function redirectToSearch(query: string) {
       if (!query || query.length === 0) return;
       console.log("redirectToSearch",query)
-      performSearch(query)
+      await performSearch(query)
+      mobileSearchModal?.classList.add('hidden');
     }
     
     // Desktop search form submission

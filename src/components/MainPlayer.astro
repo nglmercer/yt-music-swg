@@ -1,0 +1,31 @@
+---
+import Playlist from "@components/PlaylistItems.svelte";
+import Modal from "@components/commons/Modal.svelte";
+import TwoColumnLayout from "@layouts/TwoColumnLayout.astro";
+// Get search query from URL parameters
+const url = new URL(Astro.request.url);
+const searchQuery = url.searchParams.get("q") || "";
+---
+
+<Modal name="MainPlayer" client:load>
+  <TwoColumnLayout>
+    <!-- Contenido para la columna izquierda -->
+    <div slot="left" class="h-full justify-center-safe content-center">
+      <!-- Aquí iría tu imagen -->
+      <img
+        src="https://i.imgur.com/u5zDm8h.png"
+        id="album-cover-main-image"
+        alt="Portada del álbum Kocchi no Kento"
+        class="w-full h-auto object-cover rounded-md aspect-square"
+      />
+    </div>
+
+    <!-- Contenido para la columna derecha -->
+    <div slot="right">
+      <!-- Aquí iría tu lista de canciones o cualquier otro elemento -->
+      <div class="flex flex-col space-y-4">
+        <Playlist client:only="svelte" />
+      </div>
+    </div>
+  </TwoColumnLayout>
+</Modal>

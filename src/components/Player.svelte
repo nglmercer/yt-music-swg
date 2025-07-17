@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ArrowToggle from './commons/ArrowToggle.svelte';
   import { onMount, onDestroy } from 'svelte';
   import type { SongData } from "../utils/fetch/youtube-music"; // Asegúrate de que esta ruta de importación sea correcta en tu proyecto
   import { YTMusicApi } from "../utils/fetch/fetchapi";
@@ -134,6 +135,13 @@
         const result = YTMusicApi.likeSong();
         return result
     }
+      let maximizado = false;
+
+    function toggle() {
+      maximizado = !maximizado;
+      emitter.emit(`toggle:MainPlayer`,maximizado)
+      
+    }
 </script>
 <!-- 
   ESTRUCTURA HTML DEL REPRODUCTOR
@@ -142,6 +150,26 @@
   - La información de la canción se muestra dinámicamente o se presenta un texto predeterminado.
 -->
 <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white border-t border-gray-800 px-2 md:px-4 py-2 md:py-3 z-50">
+  <!-- Contenedor para el slider superpuesto -->
+  <div class="absolute -top-4 -left-0 right-0 w-full m-0 p-0">
+    <input
+      type="range"
+      min="0"
+      max={songData?.songDuration || 0}
+      bind:value={elapsedSeconds}
+      disabled={!songData}
+      class="w-full h-1 bg-gray-700 rounded-none appearance-none cursor-pointer accent-white hover:h-2 transition-all duration-150"
+      class:opacity-50={!songData}
+      on:change={(e) => {
+        const newTime = Number(e.currentTarget.value);
+        console.log("newtime", newTime);
+        emitter.emit('seek-to', newTime);
+        YTMusicApi.seekTo(newTime);
+      }}
+      aria-label="Seek slider"
+    />
+  </div>
+
   <div class="flex items-center justify-between">
     <!-- Song Info -->
     <div class="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
@@ -168,6 +196,7 @@
     <!-- Player Controls -->
     <div class="flex flex-col items-center space-y-1 md:space-y-2 flex-1 max-w-md">
       <div class="flex items-center space-x-2 md:space-x-4">
+        <span class="text-xs text-gray-400 w-10 text-right">{formatTime(elapsedSeconds)}</span>
         <!-- Previous -->
         <button on:click={playPrevious} class="p-1 rounded-full hover:bg-gray-800 transition-colors" disabled={!songData}  aria-label="Add to favorites">
           <svg class="w-5 h-5 md:w-6 md:h-6" class:opacity-50={!songData} fill="currentColor" viewBox="0 0 24 24">
@@ -192,16 +221,10 @@
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
           </svg>
         </button>
-      </div>
-      
-      <!-- Progress Bar -->
-      <div class="hidden md:flex items-center space-x-2 w-full">
-        <span class="text-xs text-gray-400 w-10 text-right">{formatTime(elapsedSeconds)}</span>
-        <div class="flex-1 h-1 bg-gray-700 rounded-full">
-          <div class="h-1 bg-white rounded-full" style="width: {progressPercentage}%"></div>
-        </div>
         <span class="text-xs text-gray-400 w-10">{formatTime(songData?.songDuration || 0)}</span>
       </div>
+      
+
     </div>
     
     <!-- Volume and Options (simplificado para el ejemplo) -->
@@ -241,7 +264,9 @@
             class:opacity-50={!songData}
             aria-label="Volume slider"
         />
+        <ArrowToggle value={maximizado} onToggle={toggle} />
     </div>
 </div>
   </div>
+  
 </div>

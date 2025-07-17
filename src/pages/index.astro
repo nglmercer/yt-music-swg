@@ -3,7 +3,7 @@ import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/Navbar.astro';
 import Sidebar from '../components/Sidebar.astro';
 import Player from '../components/Player.svelte';
-import Playlist from '../components/PlaylistItems.svelte'
+import MainPlayer from '@components/MainPlayer.astro';
 ---
 
 <MainLayout title="YouTube Music">
@@ -78,11 +78,7 @@ import Playlist from '../components/PlaylistItems.svelte'
         </div>
       </div>
       
-      <!-- Featured Content -->
-      <div class="space-y-8">
-
-        <Playlist client:only="svelte"/>
-      </div>
+      <MainPlayer />
     </div>
   </div>
   

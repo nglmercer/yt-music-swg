@@ -30,14 +30,14 @@
   }
 </script>
 
-<div class="flex flex-col h-dvh bg-gray-900 text-white">
+<div class="flex flex-col h-[90dvh] bg-gray-900 text-white">
   <h1 class="p-4 text-2xl font-bold shrink-0">Mi Lista de Reproducción</h1>
 
   <div class="flex-1 overflow-y-auto px-4 pb-4">
     {#if playlistItems.length}
       <ul class="space-y-2">
-        {#each playlistItems as item (item.playlistPanelVideoRenderer.videoId)}
-          {@const video = item.playlistPanelVideoRenderer}
+      {#each playlistItems as item, i (item.playlistPanelVideoRenderer.videoId + i)}
+        {@const video = item.playlistPanelVideoRenderer}
 
           <li>
             <button

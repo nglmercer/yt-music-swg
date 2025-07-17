@@ -3,20 +3,27 @@
   import { emitter } from "@utils/Emitter";
 
   export let name: string;   // Para distinguir varios modales
-  let visible = true;
+  let visible = false;
 
   const open  = () => (visible = true);
   const close = () => (visible = false);
 
   onMount(() => {
-    // Escuchamos los eventos que usaremos como "signals"
+    const handleToggle = (toggle: boolean) => {
+      console.log("toggle",toggle);
+      (visible = !!toggle)
+    };
+
+    // Ascoltiamo gli eventi che useremo come "signals"
     emitter.on(`open:${name}`,  open);
     emitter.on(`close:${name}`, close);
+    emitter.on(`toggle:${name}`, handleToggle);
 
     return () => {
-      // Limpiamos listeners al desmontar
+      // Puliamo TUTTI i listeners al smontaggio
       emitter.off(`open:${name}`,  open);
       emitter.off(`close:${name}`, close);
+      emitter.off(`toggle:${name}`, handleToggle);
     };
   });
 </script>
