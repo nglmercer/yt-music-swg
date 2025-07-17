@@ -105,6 +105,18 @@ const http = {
     }).then(handleResponse); // Usamos el manejador de respuesta
   },
 
+  patch: <T>(url: string, body: RequestBody = {}, options: FetchOptions = {}): Promise<T> => {
+    return fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+       ...(options.headers || {})
+      },
+      body: JSON.stringify(body), // Usamos JSON.stringify para el cuerpo
+     ...options
+    }).then(handleResponse); // Usamos el manejador de respuesta
+  },
+
   delete: <T>(url: string, options: FetchOptions = {}): Promise<T> => {
     return fetch(url, {
       method: 'DELETE',
@@ -382,7 +394,10 @@ class YouTubeMusicApi extends BaseApi {
     const url = `${this.host}/api/v1/queue/${index}`;
     return this.request(this.http.delete(url, { headers: this._authHeaders() }));
   }
-  
+  async setQueueIndex(index:number) {
+    const url = `${this.host}/api/v1/queue`;
+    return this.request(this.http.patch(url, {index}, { headers: this._authHeaders() }));
+  }
   // --- Búsqueda ---
 
   /**

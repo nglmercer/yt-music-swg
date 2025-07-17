@@ -96,6 +96,10 @@ import Modal from '@components/commons/Modal.svelte'
     try {
       console.log('Buscando actualización de la canción...');
       const newSongData = await YTMusicApi.getCurrentSong();
+      const ElementImage = document.getElementById("album-cover-main-image") as HTMLImageElement;
+      if (ElementImage) {
+        ElementImage.src = String(newSongData?.imageSrc);
+      }
 
       if (newSongData) {
         console.log('Nuevos datos encontrados. Despachando evento "update-song".');
