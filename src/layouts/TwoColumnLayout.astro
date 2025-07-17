@@ -1,0 +1,26 @@
+---
+// No server script needed
+---
+<div class="grid-container">
+  <div class="column-left"><slot name="left" /></div>
+  <div class="column-right"><slot name="right" /></div>
+</div>
+
+<style>
+  .grid-container {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr 1fr;
+    height: 100vh;          /* ← NEW – root height cap */
+    overflow: hidden;       /* ← NEW – never let the grid scroll */
+  }
+
+  @media (max-width: 768px) {
+    .grid-container { grid-template-columns: 1fr; }
+  }
+
+  .column-left,
+  .column-right {
+    min-height: 0;          /* ← NEW – allow children to shrink */
+  }
+</style>

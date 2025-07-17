@@ -16,7 +16,7 @@
 </script>
 
 <!-- Ocupará exactamente 100 vh -->
-<div class="flex flex-col h-screen bg-gray-900 text-white">
+<div class="flex flex-col h-dvh bg-gray-900 text-white">
   <h1 class="p-4 text-2xl font-bold shrink-0">Mi Lista de Reproducción</h1>
 
   <!-- Scroll solo en esta sección -->

@@ -1,11 +1,12 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro';
-import Navbar from '../components/Navbar.astro';
-import Sidebar from '../components/Sidebar.astro';
-import Player from '../components/Player.svelte';
-import ResultsGrid from '../components/result/ResultsGrid.svelte';
-import ResponsiveContainer from '@layouts/ResponsiveContainer.svelte';
-import Playlist from '../components/PlaylistItems.svelte';
+import MainLayout from '@layouts/MainLayout.astro';
+import Navbar from '@components/Navbar.astro';
+import Sidebar from '@components/Sidebar.astro';
+import Player from '@components/Player.svelte';
+import ResultsGrid from '@components/result/ResultsGrid.svelte';
+import Playlist from '@components/PlaylistItems.svelte';
+import Modal from '@components/commons/Modal.svelte';
+import TwoColumnLayout from '@layouts/TwoColumnLayout.astro';
 // Get search query from URL parameters
 const url = new URL(Astro.request.url);
 const searchQuery = url.searchParams.get('q') || '';
@@ -21,21 +22,24 @@ const searchQuery = url.searchParams.get('q') || '';
           id="resultsGrid"
           client:only="svelte"
           on:videoSelected={(e:any) => console.log('Video:', e.detail)}
-        />
-          <ResponsiveContainer>
+        />    
+        <Modal name="login" client:load>
+      
+          <TwoColumnLayout>
     
     <!-- Contenido para la columna izquierda -->
-    <div slot="left-content">
+    <div slot="left" class="h-full justify-center-safe content-center">
       <!-- Aquí iría tu imagen -->
       <img 
         src="https://i.imgur.com/u5zDm8h.png" 
+        id="album-cover-main-image"
         alt="Portada del álbum Kocchi no Kento" 
         class="w-full h-auto object-cover rounded-md aspect-square"
       >
     </div>
 
     <!-- Contenido para la columna derecha -->
-    <div slot="right-content">
+    <div slot="right">
       <!-- Aquí iría tu lista de canciones o cualquier otro elemento -->
       <div class="flex flex-col space-y-4">
         <Playlist client:only="svelte"/>
@@ -44,7 +48,9 @@ const searchQuery = url.searchParams.get('q') || '';
       </div>
     </div>
 
-  </ResponsiveContainer>
+  </TwoColumnLayout>
+      </Modal>
+
   </div>
   
   <!-- Player at the bottom -->
