@@ -51,8 +51,22 @@ class DropdownManager {
     }
   }
 
+  private lastViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+
   private handleResize(): void {
-    // Es buena idea cerrar el dropdown al redimensionar para evitar cálculos complejos
+    /* 1. Detectamos si el cambio fue por el teclado. */
+    const currentHeight = window.visualViewport?.height ?? window.innerHeight;
+    const currentWidth  = window.visualViewport?.width  ?? window.innerWidth;
+
+    const heightDiff = Math.abs(this.lastViewportHeight - currentHeight);
+    const widthSame  = Math.abs(window.innerWidth - currentWidth) < 2;
+
+    this.lastViewportHeight = currentHeight;
+
+    // Si el cambio es pequeño o es por el teclado, no hacemos nada
+    if (heightDiff < 100 || (heightDiff > 100 && !widthSame)) return;
+
+    /* 2. Si no fue el teclado, cerramos el dropdown. */
     if (this.activeDropdown) {
       this.closeDropdown();
     }
