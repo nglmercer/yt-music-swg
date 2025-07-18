@@ -222,6 +222,8 @@ import { defaultBtn } from './commons/const_class';
   import apiConfig from '@utils/fetch/config/apiConfig';
   import { YTMusicApi } from "../utils/fetch/fetchapi";
   import { emitter } from '@utils/Emitter';
+  import { QRCallbackname } from './commons/const_emits';
+  
 	async function getPlaylist(query:string) {
 		const result = await YTMusicApi.search({
 			query: query,
@@ -312,6 +314,20 @@ import { defaultBtn } from './commons/const_class';
       }
     });
     const apiUrlInput = document.getElementById('apiUrl') as HTMLInputElement;
+    const apiPortInput = document.getElementById('apiPORT') as HTMLInputElement;
+    emitter.on(QRCallbackname, (data:{
+      hostname:string;
+      port:string;
+      protocol:string;
+    }) => {
+      console.log('QRCallbackname',data)
+      apiUrlInput.value = data.hostname;
+      apiPortInput.value = data.port
+      apiConfig.update({
+          host: data.hostname,
+          port: data.port,
+      })
+    })
     apiUrlInput?.addEventListener('change', (e) => {
       const target = e.target as HTMLInputElement;
       const apiUrl = target.value;

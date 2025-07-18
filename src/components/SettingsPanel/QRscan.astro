@@ -26,7 +26,14 @@ const {
   data-signal-name={signalName}
 >
   <div id="qr-reader" class="rounded-lg mb-5"></div>
-  <div id="qr-reader-result" class="mb-2.5"></div>
+  <div id="qr-reader-result" class="mb-2.5">
+    <p id="qr-result-text" class="text-lg font-semibold mb-2 hidden">
+      Código QR detectado: puedes cerrar esta ventana
+    </p>
+    <div id="qr-result-link-container" class="hidden">
+      Resultado: <a id="qr-result-link" href="#" target="_blank" class="text-blue-600 hover:underline"></a>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -55,13 +62,19 @@ function parseUrlParams(url: string): UrlParams | null {
 let html5QrcodeScanner: Html5QrcodeScanner | null = null;
 let currentSignalName: string = 'qr:scanned'; // Valor por defecto
 
+const resultText = document.getElementById('qr-result-text') as HTMLParagraphElement;
 function onScanSuccess(decodedText: string, decodedResult: Html5QrcodeResult): void {
   console.log(`Código QR detectado: ${decodedText}`);
-  const resultContainer = document.getElementById('qr-reader-result') as HTMLDivElement;
-  if (resultContainer) {
-    resultContainer.innerHTML = `
-      Resultado: <a href="${decodedText}" target="_blank" class="text-blue-600 hover:underline">${decodedText}</a>
-    `;
+  
+  // Actualizar elementos sin innerHTML
+  const linkContainer = document.getElementById('qr-result-link-container') as HTMLDivElement;
+  const link = document.getElementById('qr-result-link') as HTMLAnchorElement;
+  
+  if (resultText && linkContainer && link) {
+    resultText.classList.remove('hidden');
+    linkContainer.classList.remove('hidden');
+    link.href = decodedText;
+    link.textContent = decodedText;
   }
 
   const urlParams = parseUrlParams(decodedText);
@@ -82,7 +95,7 @@ function onScanFailure(error: string): void {
 function initializeQRScanner() {
   html5QrcodeScanner = new Html5QrcodeScanner(
     'qr-reader',
-    { fps: 10, qrbox: { width: 250, height: 250 } },
+    { fps: 10, qrbox: { width: 320, height: 320 } },
     false
   );
   html5QrcodeScanner.render(onScanSuccess, onScanFailure);
@@ -91,6 +104,7 @@ function initializeQRScanner() {
 // Escuchar señal para abrir el escáner con un nombre de evento dinámico
 emitter.on('open:QRscan', (signalName: string) => {
   initializeQRScanner();
+  resultText.classList.add('hidden');
   console.log("signalName: ",signalName)
   if (!signalName) return;
   currentSignalName = signalName; // Actualiza el nombre del evento a emitir

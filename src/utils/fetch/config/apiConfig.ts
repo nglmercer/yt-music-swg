@@ -10,11 +10,15 @@ interface ApiConfig {
 }
 const windowurl: string = typeof window !== "undefined" ? window.location.origin : "";
 // 2. Crea el objeto de configuración como la única fuente de la verdad
+/*
+  protocol: import.meta.env.MODE === 'development' ? 'http' : 'https',
+  api Unoficial y local, en el build usamos http y no http porque no es un deploy ni esta en el mismo dominio
+*/
 const apiConfig: ApiConfig = {
   // Lee de variables de entorno si están disponibles, si no, usa valores por defecto
   host: import.meta.env.VITE_API_HOST || 'localhost',
   port: import.meta.env.VITE_API_PORT || 26538,
-  protocol: import.meta.env.MODE === 'development' ? 'http' : 'https',
+  protocol: 'http' ,
 
   /**
    * Construye la URL completa dinámicamente.
@@ -22,10 +26,6 @@ const apiConfig: ApiConfig = {
    */
   getFullUrl(): string {
     // Para producción, normalmente no se especifica el puerto y se usa el host de la ventana.
-    if (import.meta.env.MODE !== 'development') {
-        // window.location.origin ya incluye el protocolo, host y puerto si es necesario
-        return window.location.origin; 
-    }
     return `${this.protocol}://${this.host}:${this.port}`;
   },
 
