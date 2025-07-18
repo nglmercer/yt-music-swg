@@ -1,6 +1,6 @@
 ---
 // Sidebar component similar a YouTube Music
-const localbaseUrl = Astro.url.origin;
+const baseUrl = Astro.site?.toString();
 ---
 
 <aside class="flex flex-col h-full">
@@ -18,7 +18,7 @@ const localbaseUrl = Astro.url.origin;
   <nav class="flex-1 px-3 py-4">
     <div class="space-y-1">
       <!-- Home -->
-      <a href={localbaseUrl} class="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-800 transition-colors group">
+      <a href={baseUrl} class="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-800 transition-colors group">
         <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
           <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
         </svg>
