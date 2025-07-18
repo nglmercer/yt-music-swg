@@ -4,13 +4,14 @@ import SettingsMenu from './SettingsPanel/SettingsMenu.astro';
 import SettingsItem from './SettingsPanel/SettingsItem.astro';
 import SettingsSubmenu from './SettingsPanel/SettingsSubmenu.astro';
 import Dropdown from './SettingsPanel/Dropdown.astro';
+import LocalStorageInput  from './commons/LocalStorageInput.astro'
 ---
 
 <nav class="flex items-center justify-between px-6 py-4 h-16">
   <!-- Left Section: Menu + Logo -->
   <div class="flex items-center space-x-4">
     <!-- Menu Button -->
-    <button data-dropdown-trigger="NOMBRE_DEL_DROPDOWN" class="p-2 rounded-full hover:bg-gray-800 transition-colors">
+    <button data-menu-button class="p-2 rounded-full hover:bg-gray-800 transition-colors">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
       </svg>
@@ -77,7 +78,7 @@ import Dropdown from './SettingsPanel/Dropdown.astro';
     <!-- Profile Button -->
     <button class="p-1 rounded-full hover:bg-gray-800 transition-colors ml-2">
       <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-        <span class="text-sm font-medium">U</span>
+        <span>U</span>
       </div>
     </button>
   </div>
@@ -88,16 +89,15 @@ import Dropdown from './SettingsPanel/Dropdown.astro';
         <SettingsMenu>
           <!-- Slot: header -->
           <div slot="header" class="user-profile">
-            <span>Mi Perfil</span>
+            <span>Configuracion</span>
           </div>
   
           <!-- Slot por defecto (Menú Principal) -->
           <SettingsItem label="Aspecto" subtext="Tema del dispositivo" hasSubmenu={true} data-submenu-target="submenu-appearance">
           </SettingsItem>
-          <SettingsItem label="Idioma" subtext="Español" hasSubmenu={true} data-submenu-target="submenu-language">
+          <SettingsItem label="ApiConfig" subtext="apiUrl" hasSubmenu={true} data-submenu-target="submenu-configApi">
           </SettingsItem>
-          <SettingsItem label="Ubicación" subtext="España" href="/ubicacion">
-          </SettingsItem>
+          <div></div>
   
           <!-- Slot: submenus -->
           <div slot="submenus">
@@ -107,10 +107,21 @@ import Dropdown from './SettingsPanel/Dropdown.astro';
               <SettingsItem label="Tema claro" />
             </SettingsSubmenu>
   
-            <SettingsSubmenu id="submenu-language" title="Idioma">
-              <SettingsItem label="Español" />
-              <SettingsItem label="English" />
-              <SettingsItem label="Deutsch" />
+            <SettingsSubmenu id="submenu-configApi" title="ApiConfig">
+            <div class="py-2 px-4">
+              <LocalStorageInput
+                id="apiUrl"
+                label="Tu API Url"
+                placeholder="Introduce tu clave de apiUrl"
+                theme='dark'
+              />
+              <LocalStorageInput
+                id="apiPORT"
+                label="Tu api PORT"
+                placeholder="Introduce tu clave de apiPORT"
+                theme='dark'
+              />
+            </div>
             </SettingsSubmenu>
           </div>
         </SettingsMenu>
@@ -292,6 +303,14 @@ import Dropdown from './SettingsPanel/Dropdown.astro';
       if (e.key === 'Escape' && !mobileSearchModal?.classList.contains('hidden')) {
         mobileSearchModal?.classList.add('hidden');
       }
+    });
+    const apiUrlInput = document.getElementById('apiUrl') as HTMLInputElement;
+    apiUrlInput?.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      const apiUrl = target.value;
+      apiConfig.update({
+          host: apiUrl
+      })
     });
   });
 </script>

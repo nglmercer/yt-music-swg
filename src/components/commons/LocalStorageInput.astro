@@ -1,0 +1,97 @@
+---
+// src/components/LocalStorageInput.astro
+
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'input'> {
+  id: string; // El ID sigue siendo obligatorio para localStorage y el label
+  label: string;
+  placeholder?: string;
+  theme?: 'light' | 'dark';
+  class?: string;
+}
+
+const {
+  id,
+  label,
+  placeholder = "Escribe aquí...",
+  theme = 'light',
+  class: customClass,
+  ...rest
+} = Astro.props;
+
+const baseClasses = "block w-full px-3 py-2 rounded-md shadow-sm sm:text-sm focus:outline-none";
+
+const themeClasses = {
+  light: "bg-white border-gray-300 placeholder-gray-400 text-gray-900 focus:ring-indigo-500 focus:border-indigo-500",
+  dark: "bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+};
+---
+
+<div class:list={["w-full", customClass]}>
+  <label for={id} class:list={["block text-sm font-medium mb-1", theme === 'dark' ? 'text-gray-300' : 'text-gray-700']}>
+    {label}
+  </label>
+  <input
+    type="text"
+    id={id}
+    name={id}
+    placeholder={placeholder}
+    class:list={[baseClasses, themeClasses[theme]]}
+    aria-label={label}
+    data-local-storage-input="true"
+    {...rest}
+  />
+</div>
+
+<!-- 
+  Este script ahora es genérico. Se ejecutará una vez en la página,
+  encontrará TODOS los inputs con el data-attribute y les aplicará la lógica.
+-->
+<script>
+  import LocalStorageManager from "@utils/LocalStorageManager";
+  interface LocalStorageInput {
+    [key: string]: string;
+  }
+  const InputStoreManager = new LocalStorageManager<LocalStorageInput>("InputStoreManager");
+  function setupLocalStorageInputs() {
+    // Seleccionamos todos los elementos con el marcador en la página.
+    const inputElements = document.querySelectorAll('[data-local-storage-input]');
+
+    // Si no hay ninguno, no hacemos nada.
+    if (inputElements.length === 0) return;
+
+    inputElements.forEach(input => {
+      // Nos aseguramos de que sea un elemento de input HTML
+      if (!(input instanceof HTMLInputElement)) return;
+
+      // El 'id' del input se usa como la clave única para localStorage.
+      const storageKey = input.id;
+      if (!storageKey) {
+        console.warn('El input con data-local-storage-input no tiene un id y será ignorado.', input);
+        return;
+      }
+
+      // 1. Cargar el valor guardado de localStorage al iniciar.
+      const savedValue = InputStoreManager.getItem(storageKey);
+      if (savedValue !== null) {
+        input.value = savedValue;
+      }
+
+      // 2. Guardar el valor en localStorage cada vez que el usuario escribe.
+      const handleInput = () => {
+        InputStoreManager.set(storageKey, input.value);
+      };
+
+      input.addEventListener('input', handleInput);
+    });
+  }
+
+  // Nos aseguramos de ejecutar nuestro script solo cuando el DOM esté completamente cargado.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLocalStorageInputs);
+  } else {
+    // El DOM ya está cargado, ejecutamos la función directamente.
+    setupLocalStorageInputs();
+  }
+</script>

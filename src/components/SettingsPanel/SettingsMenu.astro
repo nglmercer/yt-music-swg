@@ -14,9 +14,6 @@
     <main class="menu-main">
       <slot /> <!-- Items del menú principal -->
     </main>
-    <footer class="menu-footer">
-      <slot name="footer" />
-    </footer>
   </div>
   
   <!-- Panel 2: Contenedor para TODOS los submenús (ocupa siempre el 50% derecho) -->
@@ -120,6 +117,7 @@ document.addEventListener('DOMContentLoaded', setupSettingsMenu);
 .submenus-wrapper {
   width: 50%;
   flex-shrink: 0;
+  min-height: calc(28dvh - 64px); /* Ajusta según tus necesidades */
   position: relative; /* Clave para posicionar submenús hijos */
   /* Estilos para TODOS los submenús dentro del wrapper */
   .submenu-view {
@@ -156,11 +154,15 @@ document.addEventListener('DOMContentLoaded', setupSettingsMenu);
 
 
 /* Tus estilos existentes para header, main, etc. */
-.menu-header, .menu-footer {
+.menu-header {
   padding: 8px;
 }
 .menu-main {
-  padding: 0 8px;
+    padding: 0 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 100%;
 }
 
 /* Estilos del wrapper exterior (sin cambios) */
