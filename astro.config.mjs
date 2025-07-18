@@ -11,5 +11,7 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
-  integrations: [svelte()]
+  integrations: [svelte()],
+  site: 'https://nglmercer.github.io/yt-music-swg',
+  base: '/',
 });
