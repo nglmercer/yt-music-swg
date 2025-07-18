@@ -5,7 +5,9 @@ interface Props {
 
 const { title } = Astro.props;
 import "../styles/global.css";
-import Modal from '@components/commons/Modal.svelte'
+import Modal from '@components/commons/Modal.svelte';
+import QRscan from '@components/SettingsPanel/QRscan.astro';
+import QRModal from '@components/QRModal.astro'
 ---
 
 <!DOCTYPE html>
@@ -39,6 +41,8 @@ import Modal from '@components/commons/Modal.svelte'
         <slot />
       </main>
     </div>
+    <QRModal></QRModal>
+
   </div>
   
   <script>

@@ -1,0 +1,26 @@
+---
+import QRscan from '@components/SettingsPanel/QRscan.astro';
+import ModalAstro from "@components/commons/ModalAstro.astro";
+---
+<ModalAstro name="QRModal">
+    <QRscan />
+</ModalAstro>
+<script>
+    import { emitter } from "@utils/Emitter";
+    const ImportAPIURLID = "ImportAPIURL"
+    const ImportAPIURL = document.getElementById(ImportAPIURLID);
+    const Callbackname = "QRcallback"
+    emitter.on(Callbackname, (url) => {
+        console.log(Callbackname, url);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (ImportAPIURL) {
+            ImportAPIURL.addEventListener("click", () => {
+                emitter.emit("open:QRModal");
+                emitter.emit("open:QRscan",Callbackname);
+            });
+        }
+        console.log('DOMContentLoaded');
+    });
+</script>

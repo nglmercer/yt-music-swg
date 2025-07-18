@@ -32,7 +32,7 @@ function createSmartInterval(callback: () => void) {
     };
   
     // Detectar interacción del usuario
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') {
         console.error("no se puede ejecutar en el servidor (client:only)")
     }
     ['mousemove', 'keydown', 'scroll', 'click'].forEach(event => {

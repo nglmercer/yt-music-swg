@@ -4,26 +4,41 @@ interface Props {
   className?: string;
   fps?: number;
   qrBoxSize?: { width: number; height: number };
+  /** El nombre del evento que se emitirá con los datos del QR */
+  signalName?: string;
 }
-const { className = "", fps = 10, qrBoxSize = { width: 250, height: 250 } } = Astro.props;
+
+// Extraemos signalName y le damos valores por defecto al resto
+const { 
+  className = "", 
+  fps = 10, 
+  qrBoxSize = { width: 250, height: 250 },
+  signalName = 'qr:scanned'
+} = Astro.props;
 ---
-<div class={`max-w-2xl mx-auto p-5 ${className}`}>
+
+<!-- 
+  Añadimos una clase única 'qr-scanner-container' para seleccionarlo fácilmente 
+  y el atributo data-signal-name con el valor de la prop.
+-->
+<div 
+  class={`max-w-2xl mx-auto p-5 qr-scanner-container ${className}`} 
+  data-signal-name={signalName}
+>
   <div id="qr-reader" class="rounded-lg mb-5"></div>
   <div id="qr-reader-result" class="mb-2.5"></div>
-  <div id="url-params-result" class="font-mono text-sm"></div>
 </div>
 
 <script>
 import { Html5QrcodeScanner, type Html5QrcodeResult } from 'html5-qrcode';
+import { emitter } from '@utils/Emitter';
 
-// Definimos el tipo para el resultado del parseo de URL
 interface UrlParams {
   protocol: string;
   hostname: string;
   port: string;
 }
 
-// Función para parsear URL y extraer protocol, hostname, port
 function parseUrlParams(url: string): UrlParams | null {
   try {
     const urlObj = new URL(url);
@@ -32,66 +47,55 @@ function parseUrlParams(url: string): UrlParams | null {
       hostname: urlObj.hostname,
       port: urlObj.port || (urlObj.protocol === 'https:' ? '443' : '80'),
     };
-  } catch (error) {
-    console.error('Error parsing URL:', error);
+  } catch {
     return null;
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Función que se ejecuta cuando el escaneo es exitoso
-  function onScanSuccess(decodedText: string, decodedResult: Html5QrcodeResult): void {
-    console.log(`Código QR detectado: ${decodedText}`);
-    const resultContainer = document.getElementById('qr-reader-result') as HTMLDivElement;
-    const urlParamsContainer = document.getElementById('url-params-result') as HTMLDivElement;
-    
-    if (resultContainer) {
-      resultContainer.innerHTML = `
-        <p>¡Escaneo Exitoso!</p>
-        Resultado: <a href="${decodedText}" target="_blank" class="text-blue-600 hover:underline">${decodedText}</a>
-      `;
-    }
+let html5QrcodeScanner: Html5QrcodeScanner | null = null;
+let currentSignalName: string = 'qr:scanned'; // Valor por defecto
 
-    const urlParams = parseUrlParams(decodedText);
-    if (urlParams && urlParamsContainer) {
-      urlParamsContainer.innerHTML = `
-        <div class="mt-2.5 p-2.5 bg-gray-100 rounded-md">
-          <h4 class="font-semibold mb-2">Parámetros de la URL:</h4>
-          <p><strong>Protocol:</strong> ${urlParams.protocol}</p>
-          <p><strong>Hostname:</strong> ${urlParams.hostname}</p>
-          <p><strong>Port:</strong> ${urlParams.port}</p>
-        </div>
-      `;
-      console.log('URL Parameters:', urlParams);
-    } else if (urlParamsContainer) {
-      urlParamsContainer.innerHTML = `
-        <div class="mt-2.5 p-2.5 bg-red-50 rounded-md">
-          <p><strong>Error:</strong> No se pudo parsear como URL válida</p>
-        </div>
-      `;
-    }
-    
-    // Opcional: detener el escáner tras un escaneo exitoso
-    // html5QrcodeScanner.clear();
+function onScanSuccess(decodedText: string, decodedResult: Html5QrcodeResult): void {
+  console.log(`Código QR detectado: ${decodedText}`);
+  const resultContainer = document.getElementById('qr-reader-result') as HTMLDivElement;
+  if (resultContainer) {
+    resultContainer.innerHTML = `
+      Resultado: <a href="${decodedText}" target="_blank" class="text-blue-600 hover:underline">${decodedText}</a>
+    `;
   }
 
-  // Función que se ejecuta si el escaneo falla
-  function onScanFailure(error: string): void {
-    // console.warn(`Error de escaneo: ${error}`);
+  const urlParams = parseUrlParams(decodedText);
+  if (urlParams) {
+    emitter.emit(currentSignalName, urlParams);
+    console.log(`Emitido en '${currentSignalName}':`, urlParams);
+  } else {
+    emitter.emit(currentSignalName, false);
   }
 
-  // Creamos una nueva instancia del escáner
-  const html5QrcodeScanner = new Html5QrcodeScanner(
+  html5QrcodeScanner?.clear();
+}
+
+function onScanFailure(error: string): void {
+  // Silencioso o log opcional
+}
+
+function initializeQRScanner() {
+  html5QrcodeScanner = new Html5QrcodeScanner(
     'qr-reader',
-    {
-      fps: 10,
-      qrbox: { width: 250, height: 250 },
-    },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
     false
   );
-  
   html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+}
+// initializeQRScanner();
+// Escuchar señal para abrir el escáner con un nombre de evento dinámico
+emitter.on('open:QRscan', (signalName: string) => {
+  initializeQRScanner();
+  console.log("signalName: ",signalName)
+  if (!signalName) return;
+  currentSignalName = signalName; // Actualiza el nombre del evento a emitir
 });
+//initializeQRScanner();
 </script>
 <style is:global>
 /* =========================

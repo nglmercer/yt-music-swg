@@ -1,0 +1,81 @@
+---
+// src/components/Modal.astro
+import type { HTMLAttributes } from 'astro/types';
+
+export interface Props extends HTMLAttributes<'div'> {
+  name: string;
+}
+
+const { name, ...rest } = Astro.props;
+---
+
+<div id={`modal-${name}`} class="fixed inset-0 z-40 items-center justify-center bg-black/50 hidden" data-name={name}>
+  <button
+    type="button"
+    aria-label="Cerrar modal"
+    class="absolute inset-0"
+    data-close-modal
+  ></button>
+  <section
+    class="relative z-50 rounded-lg shadow-xl bg-white/20"
+    role="dialog"
+    tabindex="0"
+    aria-modal="true"
+  >
+    <slot />
+  </section>
+</div>
+
+<script>
+    import { emitter } from "@utils/Emitter";
+  // Función para manejar el cierre del modal
+  function closeModal(modal: HTMLElement) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  // Se buscan todos los modales en la página
+  const modals = document.querySelectorAll<HTMLElement>('[id^="modal-"]');
+
+  modals.forEach(modal => {
+    const name = modal.dataset.name;
+    if (!name) return;
+
+    // Se agrega el listener para abrir
+    emitter.on(`open:${name}`, () => {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    });
+
+    // Se agrega el listener para cerrar
+    emitter.on(`close:${name}`, () => {
+      closeModal(modal);
+    });
+
+    // Se agrega el listener para alternar
+    emitter.on(`toggle:${name}`, (visible?: boolean) => {
+      if (visible === undefined) {
+        modal.classList.toggle('hidden');
+        modal.classList.toggle('flex');
+      } else if (visible) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        closeModal(modal);
+      }
+    });
+
+    // Cierra el modal si se hace clic en el fondo
+    const closeButton = modal.querySelector('[data-close-modal]');
+    if (closeButton) {
+      closeButton.addEventListener('click', () => closeModal(modal));
+    }
+
+    // Cierra el modal si se presiona la tecla Escape
+    modal.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape') {
+        closeModal(modal);
+      }
+    });
+  });
+</script>

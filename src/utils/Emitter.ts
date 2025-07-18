@@ -121,7 +121,8 @@ export class Emitter {
   }
 
   // Emite un evento con los datos proporcionados
-  public emit(event: string, data: any): boolean {
+  
+  public emit(event: string, data: any =''): boolean {
     let hasListeners = false;
 
     // Ejecutar listeners específicos del evento
