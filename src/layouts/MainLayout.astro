@@ -92,19 +92,23 @@ import Modal from '@components/commons/Modal.svelte'
     import { YTMusicApi } from "../utils/fetch/fetchapi";
     import { emitter } from "@utils/Emitter";
     import { addImageSrcListenerWithCallback} from "@utils/listeners/ImageOnchange";
-    import LocalStorageManager from "@utils/LocalStorageManager";
-  // Función para obtener la canción y despachar el evento
+    import { LocalStorageData } from '@components/Instances';
+    import { createSmartInterval } from "@utils/listeners/interval"
+    // Función para obtener la canción y despachar el evento
+    const ElementImageId = 'album-cover-main-image';
+    addImageSrcListenerWithCallback(ElementImageId,(src:string)=>{
+      if (src.includes("base64")) return;
+      console.log("src: ",src)
+      LocalStorageData.set('imageSrc',src);
+    })
   async function checkForUpdates() {
     try {
       console.log('Buscando actualización de la canción...');
       const newSongData = await YTMusicApi.getCurrentSong();
-      const ElementImageId = 'album-cover-main-image'
       const ElementImage = document.getElementById(ElementImageId) as HTMLImageElement;
-      addImageSrcListenerWithCallback(ElementImageId,(src:string)=>{
-          
-      })
+      console.log(" LocalStorageData.get('imageSrc')", LocalStorageData.get('imageSrc'))
       if (ElementImage) {
-        ElementImage.src = String(newSongData?.imageSrc);
+        ElementImage.src = String((newSongData?.imageSrc || LocalStorageData.get('imageSrc')));
       }
 
       if (newSongData) {
@@ -117,7 +121,7 @@ import Modal from '@components/commons/Modal.svelte'
   }
   checkForUpdates()
   // Hacemos una comprobación periódica para ver si la canción ha cambiado
-  setInterval(checkForUpdates, 10000); // Cada 10 segundos
+  createSmartInterval(checkForUpdates); // Cada 10 segundos
   interface QueueItem {
     autoPlaying: boolean,
     continuation?: string,
@@ -130,7 +134,7 @@ import Modal from '@components/commons/Modal.svelte'
     return queue
   }
   getQueue()
-  setInterval(getQueue, 10000);
+  createSmartInterval(getQueue);
 </script>
 <style is:global>
   /* Scrollbar personalizado */

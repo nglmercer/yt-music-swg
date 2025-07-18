@@ -10,35 +10,15 @@ import type {
 } from './youtube-music';
 import {
   http
-} from '@utils/fetch/commons/httpservice'
+} from '@utils/fetch/commons/httpservice';
+import apiConfig from './config/apiConfig'; // <-- Importa la configuración centralizada
 // Interfaces para tipar la información del usuario y los datos almacenados
 interface UserInfo {
   token?: string;
   user?: Record<string, any>;
   [key: string]: any; 
 }
-interface configData {
-  PORT: string | number;
-  URL: string;
-  devURL: string;
-  baseURL: string;
-  actualBaseApi: string;
-}
-// Constantes de URLs con tipado explícito
-const windowurl: string = typeof window !== "undefined" ? window.location.origin : "";
-const baseurlApi: string = windowurl;
-const PORT = '26538'
-const baseurlTestApi: string = "http://localhost:"+PORT; // API de desarrollo
-const mockApi: string = "http://localhost:"+PORT; // Otra opción de mock
-const actualBaseApi: string =
-  import.meta.env.MODE === "development" ? baseurlTestApi : baseurlApi;
-const defaultConfig:configData = {
-  PORT: '26538',
-  URL: windowurl,
-  devURL: "http://localhost:",
-  baseURL: baseurlApi,
-  actualBaseApi: actualBaseApi
-}
+
 // Determina la URL base de la API según el entorno
 
 // Polyfill de Storage para entornos de Server-Side Rendering (SSR)
@@ -58,25 +38,36 @@ const localStorage: Storage = typeof window !== 'undefined'
 
 // Clase BaseApi con tipado fuerte
 class BaseApi {
-  host: string;
+  // Ya no guardamos 'host' como un string. Guardamos una referencia a la configuración.
+  private config: typeof apiConfig;
   http: typeof http;
   token?: string;
   user: Record<string, any>;
 
-  constructor(baseApi: string) {
-    this.host = baseApi;
+  // El constructor ahora recibe el módulo de configuración
+  constructor(config: typeof apiConfig) {
+    this.config = config; // <-- Guarda la referencia
     this.http = http;
-    const info: UserInfo = safeParse(localStorage.getItem("info")) || {};
+
+    const info = safeParse(localStorage.getItem("info")) || {};
     this.token = info.token || localStorage.getItem("token") || undefined;
     this.user = safeParse(info.user || safeParse(localStorage.getItem("user"))) || {};
   }
 
   /**
-   * Cambia la URL base de la API.
-   * @param host - La nueva URL base.
+   * Devuelve la URL base actual obtenida desde el módulo de configuración.
+   * Esto asegura que siempre usemos los valores más recientes.
    */
-  changeHost(host: string): void {
-    this.host = host;
+  get host(): string {
+    return this.config.getFullUrl();
+  }
+  /**
+   * Método para actualizar la configuración de la API dinámicamente.
+   * Delega la lógica de actualización al módulo de configuración.
+   * @param newConfig - Un objeto con las propiedades a cambiar (host, port).
+   */
+  updateConfig(newConfig: { host?: string; port?: number | string }): void {
+    this.config.update(newConfig);
   }
 
   /**
@@ -141,8 +132,8 @@ export interface VolumeLevel {
  * llamando al método `authenticate(id)` para obtener y almacenar el token.
  */
 class YouTubeMusicApi extends BaseApi {
-  constructor(baseApi: string) {
-    super(baseApi);
+  constructor(config: typeof apiConfig) {
+    super(config);
   }
 
   // --- Autenticación ---
@@ -311,10 +302,9 @@ class YouTubeMusicApi extends BaseApi {
     return this.request(this.http.post(url, {}, { headers: this._authHeaders() }));
   }
 }
-const YTMusicApi = new YouTubeMusicApi(defaultConfig.devURL +defaultConfig.PORT);
-console.log("defaultConfig.devURL +defaultConfig.PORT",defaultConfig.devURL +defaultConfig.PORT)
+const YTMusicApi = new YouTubeMusicApi(apiConfig);
+console.log("apiConfig",apiConfig.getFullUrl())
 export {
   YouTubeMusicApi,
-  PORT,
   YTMusicApi
 }
