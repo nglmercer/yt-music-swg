@@ -5,6 +5,7 @@ import Sidebar from '@components/Sidebar.astro';
 import Player from '@components/Player.svelte';
 import ResultsGrid from '@components/result/ResultsGrid.svelte';
 import MainPlayer from '@components/MainPlayer.astro';
+import QRscan from '@components/SettingsPanel/QRscan.astro';
 // Get search query from URL parameters
 const url = new URL(Astro.request.url);
 const searchQuery = url.searchParams.get('q') || '';
@@ -16,14 +17,17 @@ const searchQuery = url.searchParams.get('q') || '';
   
   <!-- Main Content -->
   <div class="p-4 md:p-6 pb-24">
-      <ResultsGrid
-          id="resultsGrid"
-          client:only="svelte"
-          on:videoSelected={(e:any) => console.log('Video:', e.detail)}
-        />    
-      <MainPlayer />
+    <ResultsGrid
+        id="resultsGrid"
+        client:only="svelte"
+        on:videoSelected={(e:any) => console.log('Video:', e.detail)}
+      />    
+    </div>
 
-  </div>
+    <QRscan />      
+<MainPlayer />
+
+
   
   <!-- Player at the bottom -->
   <Player client:only="svelte" />

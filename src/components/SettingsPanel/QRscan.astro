@@ -1,0 +1,284 @@
+---
+// QRScanner.astro
+interface Props {
+  className?: string;
+  fps?: number;
+  qrBoxSize?: { width: number; height: number };
+}
+const { className = "", fps = 10, qrBoxSize = { width: 250, height: 250 } } = Astro.props;
+---
+<div class={`max-w-2xl mx-auto p-5 ${className}`}>
+  <div id="qr-reader" class="rounded-lg mb-5"></div>
+  <div id="qr-reader-result" class="mb-2.5"></div>
+  <div id="url-params-result" class="font-mono text-sm"></div>
+</div>
+
+<script>
+import { Html5QrcodeScanner, type Html5QrcodeResult } from 'html5-qrcode';
+
+// Definimos el tipo para el resultado del parseo de URL
+interface UrlParams {
+  protocol: string;
+  hostname: string;
+  port: string;
+}
+
+// Función para parsear URL y extraer protocol, hostname, port
+function parseUrlParams(url: string): UrlParams | null {
+  try {
+    const urlObj = new URL(url);
+    return {
+      protocol: urlObj.protocol,
+      hostname: urlObj.hostname,
+      port: urlObj.port || (urlObj.protocol === 'https:' ? '443' : '80'),
+    };
+  } catch (error) {
+    console.error('Error parsing URL:', error);
+    return null;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Función que se ejecuta cuando el escaneo es exitoso
+  function onScanSuccess(decodedText: string, decodedResult: Html5QrcodeResult): void {
+    console.log(`Código QR detectado: ${decodedText}`);
+    const resultContainer = document.getElementById('qr-reader-result') as HTMLDivElement;
+    const urlParamsContainer = document.getElementById('url-params-result') as HTMLDivElement;
+    
+    if (resultContainer) {
+      resultContainer.innerHTML = `
+        <p>¡Escaneo Exitoso!</p>
+        Resultado: <a href="${decodedText}" target="_blank" class="text-blue-600 hover:underline">${decodedText}</a>
+      `;
+    }
+
+    const urlParams = parseUrlParams(decodedText);
+    if (urlParams && urlParamsContainer) {
+      urlParamsContainer.innerHTML = `
+        <div class="mt-2.5 p-2.5 bg-gray-100 rounded-md">
+          <h4 class="font-semibold mb-2">Parámetros de la URL:</h4>
+          <p><strong>Protocol:</strong> ${urlParams.protocol}</p>
+          <p><strong>Hostname:</strong> ${urlParams.hostname}</p>
+          <p><strong>Port:</strong> ${urlParams.port}</p>
+        </div>
+      `;
+      console.log('URL Parameters:', urlParams);
+    } else if (urlParamsContainer) {
+      urlParamsContainer.innerHTML = `
+        <div class="mt-2.5 p-2.5 bg-red-50 rounded-md">
+          <p><strong>Error:</strong> No se pudo parsear como URL válida</p>
+        </div>
+      `;
+    }
+    
+    // Opcional: detener el escáner tras un escaneo exitoso
+    // html5QrcodeScanner.clear();
+  }
+
+  // Función que se ejecuta si el escaneo falla
+  function onScanFailure(error: string): void {
+    // console.warn(`Error de escaneo: ${error}`);
+  }
+
+  // Creamos una nueva instancia del escáner
+  const html5QrcodeScanner = new Html5QrcodeScanner(
+    'qr-reader',
+    {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+    },
+    false
+  );
+  
+  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+});
+</script>
+<style is:global>
+/* =========================
+   Variables CSS para temas claro y oscuro
+   ========================= */
+:root {
+  /* Tema claro (por defecto) */
+  --qr-bg-primary: #ffffff;
+  --qr-bg-secondary: #f9f9f9;
+  --qr-bg-input: #ffffff;
+  --qr-bg-button-primary: #0066ff;
+  --qr-bg-button-primary-hover: #0052cc;
+  --qr-bg-button-secondary: #f2f2f2;
+  --qr-bg-button-secondary-hover: #e6e6e6;
+  --qr-bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  --qr-text-primary: #000000;
+  --qr-text-secondary: #333333;
+  --qr-text-muted: #555555;
+  --qr-text-link: #0066ff;
+  --qr-text-link-hover: #0052cc;
+  --qr-text-error: #d93025;
+  --qr-text-accent: #0066ff;
+  --qr-text-white: #ffffff;
+  
+  --qr-border-primary: #cccccc;
+  --qr-border-secondary: #444444;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Tema oscuro */
+    --qr-bg-primary: #1a1a1a;
+    --qr-bg-secondary: #2d2d2d;
+    --qr-bg-input: #2d2d2d;
+    --qr-bg-button-primary: #0066ff;
+    --qr-bg-button-primary-hover: #0052cc;
+    --qr-bg-button-secondary: #3d3d3d;
+    --qr-bg-button-secondary-hover: #4d4d4d;
+    --qr-bg-overlay: rgba(0, 0, 0, 0.8);
+    
+    --qr-text-primary: #ffffff;
+    --qr-text-secondary: #dddddd;
+    --qr-text-muted: #cccccc;
+    --qr-text-link: #4da6ff;
+    --qr-text-link-hover: #66b3ff;
+    --qr-text-error: #ff6b6b;
+    --qr-text-accent: #4da6ff;
+    --qr-text-white: #ffffff;
+    
+    --qr-border-primary: #444444;
+    --qr-border-secondary: #555555;
+  }
+}
+
+/* =========================
+   Html5QrcodeScanner – Estilos usando variables CSS
+   ========================= */
+/* Contenedor principal */
+#qr-reader {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--qr-bg-primary);
+  color: var(--qr-text-primary);
+  border: 0px !important;
+}
+
+/* Cabecera */
+#qr-reader__header_message {
+  display: none;
+}
+
+/* Select dropdown */
+#qr-reader select {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid var(--qr-border-primary);
+  border-radius: 4px;
+  background: var(--qr-bg-input);
+  color: var(--qr-text-primary);
+}
+
+/* Texto "Cámara preferida" (label inmediatamente antes del select) */
+#qr-reader__dashboard_section_csr span {
+  font-size: 13px;
+  color: var(--qr-text-muted);
+}
+
+/* Botón "Solicitar permisos de cámara" */
+#qr-reader__dashboard_section_csr button {
+  margin: 8px 0;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  background: var(--qr-bg-button-primary);
+  color: var(--qr-text-white);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#qr-reader__dashboard_section_csr button:hover {
+  background: var(--qr-bg-button-primary-hover);
+}
+
+/* Mensaje de permisos denegados */
+#qr-reader__status_span {
+  display: block;
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--qr-text-error);
+}
+
+/* Botón "Escanear un archivo" */
+#qr-reader__dashboard_section_swaplink {
+  display: inline-block;
+  margin: 6px 0;
+  font-size: 13px;
+  color: var(--qr-text-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#qr-reader__dashboard_section_swaplink:hover {
+  color: var(--qr-text-link-hover);
+}
+
+/* Mensaje de "Escaneando…" */
+#qr-reader__status_message {
+  margin: 8px 0;
+  font-size: 14px;
+  color: var(--qr-text-secondary);
+}
+
+/* Indicador de "escaneando" (puede ser un span o div) */
+#qr-reader__status_message span {
+  font-weight: 600;
+  color: var(--qr-text-accent);
+}
+
+/* Botón "Detener cámara" */
+#qr-reader__dashboard_section_fsr button {
+  margin: 8px 0;
+  padding: 8px 16px;
+  font-size: 14px;
+  border: 1px solid var(--qr-border-primary);
+  border-radius: 4px;
+  background: var(--qr-bg-button-secondary);
+  color: var(--qr-text-secondary);
+  cursor: pointer;
+}
+
+#qr-reader__dashboard_section_fsr button:hover {
+  background: var(--qr-bg-button-secondary-hover);
+}
+
+/* Input oculto para seleccionar archivo (file) */
+#qr-reader__filescan_input {
+  display: none;
+}
+
+/* Resultado mostrado tras escanear */
+#qr-reader__scan_region {
+  font-size: 14px;
+  border: 1px solid var(--qr-border-primary);
+  border-radius: 4px;
+  background: var(--qr-bg-secondary);
+  color: var(--qr-text-primary);
+  word-break: break-all;
+  display: grid;
+  justify-content: center;
+}
+
+/* Overlay de carga (si aparece) */
+#qr-reader__loading_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--qr-bg-overlay);
+  color: var(--qr-text-white);
+  font-size: 16px;
+  z-index: 2;
+}
+</style>
