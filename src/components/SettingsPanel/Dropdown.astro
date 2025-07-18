@@ -1,0 +1,153 @@
+---
+interface Props {
+    dropdownName: string;
+}
+
+const { 
+dropdownName
+} = Astro.props;
+---
+<div
+  class="fixed w-56 rounded-md shadow-lg ring-black ring-opacity-5 hidden z-50"
+  data-dropdown-menu={dropdownName}
+>
+  <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+    <slot name="content" />
+  </div>
+</div>
+
+<script>
+class DropdownManager {
+  private activeDropdown: HTMLElement | null = null;
+  private activeTrigger: HTMLElement | null = null;
+
+  constructor() {
+    this.init();
+  }
+
+  private init(): void {
+    document.addEventListener('click', this.handleClick.bind(this));
+    // El listener de 'scroll' ya no es necesario con position: fixed
+    window.addEventListener('resize', this.handleResize.bind(this));
+  }
+
+  private handleClick(event: Event): void {
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-dropdown-trigger]');
+
+    if (trigger) {
+      const dropdownId = trigger.getAttribute('data-dropdown-trigger')!;
+      const menu = document.querySelector<HTMLElement>(`[data-dropdown-menu="${dropdownId}"]`);
+
+      if (menu) {
+        if (menu === this.activeDropdown) {
+          this.closeDropdown();
+        } else {
+          this.closeDropdown();
+          this.openDropdown(menu, trigger);
+        }
+      }
+    } else if (this.activeDropdown && !this.activeDropdown.contains(event.target as Node)) {
+      this.closeDropdown();
+    }
+  }
+
+  private handleResize(): void {
+    // Es buena idea cerrar el dropdown al redimensionar para evitar cálculos complejos
+    if (this.activeDropdown) {
+      this.closeDropdown();
+    }
+  }
+
+  private openDropdown(menu: HTMLElement, trigger: HTMLElement): void {
+    this.activeDropdown = menu;
+    this.activeTrigger = trigger;
+    
+    // Hacemos el menú visible pero fuera de la pantalla para medirlo sin que parpadee
+    menu.style.visibility = 'hidden';
+    menu.classList.remove('hidden');
+
+    this.updateDropdownPosition();
+    
+    // Ahora que está posicionado, lo hacemos visible
+    menu.style.visibility = 'visible';
+  }
+
+  private closeDropdown(): void {
+    if (this.activeDropdown) {
+      this.activeDropdown.classList.add('hidden');
+      this.activeDropdown = null;
+      this.activeTrigger = null;
+    }
+  }
+
+  private updateDropdownPosition(): void {
+    if (!this.activeDropdown || !this.activeTrigger) return;
+
+    const triggerRect = this.activeTrigger.getBoundingClientRect();
+    const menu = this.activeDropdown;
+    // Forzamos un reflow para asegurar que las dimensiones son correctas después de quitar 'hidden'
+    const menuRect = menu.getBoundingClientRect(); 
+    
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 8; // Un pequeño margen para que no quede pegado al borde
+
+    let top, left;
+
+    // --- Posicionamiento Vertical ---
+    const spaceBelow = viewportHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+
+    // ¿Hay suficiente espacio abajo? O ¿Hay más espacio abajo que arriba?
+    if (spaceBelow >= menuRect.height || spaceBelow > spaceAbove) {
+      top = triggerRect.bottom;
+      // Nos aseguramos de que no se salga por abajo
+      if (top + menuRect.height > viewportHeight) {
+        top = viewportHeight - menuRect.height - margin;
+      }
+    } else { // Si no, lo posicionamos arriba
+      top = triggerRect.top - menuRect.height;
+      // Nos aseguramos de que no se salga por arriba
+      if (top < 0) {
+        top = margin;
+      }
+    }
+
+    // --- Posicionamiento Horizontal ---
+    left = triggerRect.left;
+    // ¿Se sale por la derecha?
+    if (left + menuRect.width > viewportWidth) {
+      // Lo alineamos a la derecha del trigger
+      left = triggerRect.right - menuRect.width;
+    }
+    // ¿Se sale por la izquierda? (puede pasar con el ajuste anterior)
+    if (left < 0) {
+      left = margin;
+    }
+
+    menu.style.top = `${top}px`;
+    menu.style.left = `${left}px`;
+  }
+}
+
+// Inicializar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => new DropdownManager());
+} else {
+  new DropdownManager();
+}
+</script>
+
+<!-- Las transiciones CSS funcionan igual, no necesitas cambiarlas -->
+<style>
+  [data-dropdown-menu] {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  }
+
+  [data-dropdown-menu]:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>

@@ -1,0 +1,137 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'a'> {
+  label: string;
+  subtext?: string;
+  href?: string;
+  hasSubmenu?: boolean;
+}
+
+const { 
+  label, 
+  subtext, 
+  href, 
+  hasSubmenu = false, 
+  ...rest 
+} = Astro.props;
+---
+{href ? (
+  <a href={href} class="settings-item" {...rest}>
+    <div class="icon-container"><slot name="icon" /></div>
+    <div class="text-container">
+      <span class="label">{label}</span>
+      {subtext && <span class="subtext">{subtext}</span>}
+    </div>
+    {hasSubmenu && (
+      <div class="arrow-container">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg>
+      </div>
+    )}
+  </a>
+) : (
+    //@ts-expect-error
+  <button type="button" class="settings-item" {...rest}>
+    <div class="icon-container"><slot name="icon" /></div>
+    <div class="text-container">
+      <span class="label">{label}</span>
+      {subtext && <span class="subtext">{subtext}</span>}
+    </div>
+    {hasSubmenu && (
+      <div class="arrow-container">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg>
+      </div>
+    )}
+  </button>
+)}
+
+<style>
+  .settings-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 16px;
+    background-color: transparent;
+    border: none;
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    color: #0f0f0f;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    border-radius: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .settings-item {
+      color: #f1f1f1;
+    }
+  }
+
+  .settings-item:hover,
+  .settings-item:focus-visible {
+    background-color: rgba(0, 0, 0, 0.1);
+    outline: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .settings-item:hover,
+    .settings-item:focus-visible {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 16px;
+    color: #606060;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .icon-container {
+      color: #aaa;
+    }
+  }
+
+  .icon-container > svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .text-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .label {
+    white-space: nowrap;
+  }
+
+  .subtext {
+    font-size: 12px;
+    color: #606060;
+    white-space: nowrap;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .subtext {
+      color: #aaa;
+    }
+  }
+
+  .arrow-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-left: auto;
+  }
+</style>

@@ -11,17 +11,16 @@ import type {
 import {
   http
 } from '@utils/fetch/commons/httpservice';
-import apiConfig from './config/apiConfig'; // <-- Importa la configuración centralizada
-// Interfaces para tipar la información del usuario y los datos almacenados
+import apiConfig from './config/apiConfig';
 interface UserInfo {
   token?: string;
   user?: Record<string, any>;
   [key: string]: any; 
 }
-
-// Determina la URL base de la API según el entorno
-
-// Polyfill de Storage para entornos de Server-Side Rendering (SSR)
+apiConfig.update({
+  host: "127.0.0.1"
+});
+// Polyfill (SSR)
 const ssrSafeStorage: Storage = {
   getItem: () => null,
   setItem: () => {},
@@ -36,7 +35,6 @@ const localStorage: Storage = typeof window !== 'undefined'
   ? (window.localStorage || ssrSafeStorage) 
   : ssrSafeStorage;
 
-// Clase BaseApi con tipado fuerte
 class BaseApi {
   // Ya no guardamos 'host' como un string. Guardamos una referencia a la configuración.
   private config: typeof apiConfig;
@@ -49,7 +47,7 @@ class BaseApi {
     this.config = config; // <-- Guarda la referencia
     this.http = http;
 
-    const info = safeParse(localStorage.getItem("info")) || {};
+    const info:UserInfo = safeParse(localStorage.getItem("info")) || {};
     this.token = info.token || localStorage.getItem("token") || undefined;
     this.user = safeParse(info.user || safeParse(localStorage.getItem("user"))) || {};
   }
@@ -99,20 +97,15 @@ class BaseApi {
     }
   }
 }
-// --- Interfaces y Tipos para la API de YouTube Music ---
 
-/** Modos de repetición del reproductor. */
 export type RepeatMode = 'NONE' | 'ALL' | 'ONE';
 
 /** Posición para insertar una canción en la cola. */
-// Valores válidos como constante
 const VALID_INSERT_POSITIONS = ['INSERT_AT_END', 'INSERT_AFTER_CURRENT_VIDEO'] as const;
 export function isValidInsertPosition(value: string): value is InsertPosition {
   return VALID_INSERT_POSITIONS.includes(value as InsertPosition);
 }
-// Tipo derivado de la constante
 export type InsertPosition = typeof VALID_INSERT_POSITIONS[number];
-/** Cuerpo para la petición de búsqueda. */
 export interface SearchBody {
   query: string;
   params?: string;
@@ -123,14 +116,6 @@ export interface VolumeLevel {
   state: number
 }
 
-// --- Implementación de la Clase para la API de YouTube Music ---
-
-/**
- * Clase que extiende BaseApi para interactuar con la API de YouTube Music.
- * 
- * @nota Antes de usar los métodos bajo /api/v1/*, debes autenticarte
- * llamando al método `authenticate(id)` para obtener y almacenar el token.
- */
 class YouTubeMusicApi extends BaseApi {
   constructor(config: typeof apiConfig) {
     super(config);

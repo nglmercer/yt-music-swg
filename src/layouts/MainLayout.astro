@@ -103,16 +103,14 @@ import Modal from '@components/commons/Modal.svelte'
     })
   async function checkForUpdates() {
     try {
-      console.log('Buscando actualización de la canción...');
       const newSongData = await YTMusicApi.getCurrentSong();
       const ElementImage = document.getElementById(ElementImageId) as HTMLImageElement;
-      console.log(" LocalStorageData.get('imageSrc')", LocalStorageData.get('imageSrc'))
       if (ElementImage) {
         ElementImage.src = String((newSongData?.imageSrc || LocalStorageData.get('imageSrc')));
       }
 
       if (newSongData) {
-        console.log('Nuevos datos encontrados. Despachando evento "update-song".');
+      //  console.log('Nuevos datos encontrados. Despachando evento "update-song".');
         emitter.emit('update-song', newSongData);
       }
     } catch (error) {
@@ -129,7 +127,7 @@ import Modal from '@components/commons/Modal.svelte'
   }
   async function getQueue() {
     const queue:QueueItem|null  = await YTMusicApi.getQueue();
-    console.log("queue: ", queue?.items[0])
+  //  console.log("queue: ", queue?.items[0])
     emitter.emit('updatePlaylist', queue?.items)
     return queue
   }

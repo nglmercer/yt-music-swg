@@ -1,0 +1,180 @@
+---
+// No se necesitan props para el contenedor principal
+---
+
+<!-- 
+  El data-view sigue controlando el estado, pero la estructura interna es más robusta.
+-->
+<div id="settings-menu-wrapper" class="settings-menu-container" data-view="main">
+  <!-- Panel 1: Vista del Menú Principal (ocupa siempre el 50% izquierdo) -->
+  <div class="main-menu-view">
+    <header class="menu-header">
+      <slot name="header" />
+    </header>
+    <main class="menu-main">
+      <slot /> <!-- Items del menú principal -->
+    </main>
+    <footer class="menu-footer">
+      <slot name="footer" />
+    </footer>
+  </div>
+  
+  <!-- Panel 2: Contenedor para TODOS los submenús (ocupa siempre el 50% derecho) -->
+  <div class="submenus-wrapper">
+    <slot name="submenus" />
+  </div>
+</div>
+
+<script>
+function setupSettingsMenu(): void {
+  const wrapper = document.getElementById('settings-menu-wrapper');
+  if (!wrapper) return;
+
+  // Función para ocultar todos los submenús activos
+  const hideAllSubmenus = (): void => {
+    const activeSubmenus = wrapper.querySelectorAll('.submenu-view.is-active');
+    console.log('Ocultando submenús:', activeSubmenus.length); // Debug
+    activeSubmenus.forEach((submenu: Element) => submenu.classList.remove('is-active'));
+  };
+
+  // Función para mostrar un submenú específico por su ID
+  const showSubmenu = (targetId: string): void => {
+    if (!targetId) return;
+    console.log("targetId:", targetId); // Debug
+    // Oculta primero cualquier otro submenú que estuviera abierto
+    hideAllSubmenus();
+   
+    const targetSubmenu = wrapper.querySelector(`#${targetId}`);
+    if (targetSubmenu) {
+      console.log('Mostrando submenú:', targetSubmenu); // Debug
+      targetSubmenu.classList.add('is-active');
+      // Desliza el panel principal para revelar el área de submenús
+      wrapper.dataset.view = 'submenu';
+    }
+  };
+
+  // Función para volver al menú principal
+  const showMainMenu = (): void => {
+    // Desliza el panel de vuelta a su posición original
+    wrapper.dataset.view = 'main';
+   
+    // Esperamos a que la animación de deslizamiento TERMINE antes de ocultar
+    // el submenú. Esto evita que desaparezca bruscamente.
+    const onTransitionEnd = (event: TransitionEvent): void => {
+      if (event.propertyName === 'transform') {
+        hideAllSubmenus();
+        wrapper.removeEventListener('transitionend', onTransitionEnd);
+      }
+    };
+    wrapper.addEventListener('transitionend', onTransitionEnd);
+  };
+ 
+  // Delegación de eventos: un solo listener en el wrapper para todo
+  wrapper.addEventListener('click', (event: MouseEvent): void => {
+    const target = event.target as HTMLElement;
+   
+    // Comprueba si se hizo clic en un botón para abrir un submenú
+    const submenuTrigger = target.closest('[data-submenu-target]') as HTMLElement;
+    if (submenuTrigger) {
+      const targetId = submenuTrigger.getAttribute('data-submenu-target');
+      if (targetId) {
+        showSubmenu(targetId);
+      }
+      return;
+    }
+   
+    // Comprueba si se hizo clic en un botón para volver
+    const backTrigger = target.closest('[data-submenu-back]');
+    if (backTrigger) {
+      showMainMenu();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', setupSettingsMenu);
+</script>
+
+<style is:global>
+/* Contenedor principal que se desliza */
+.settings-menu-container {
+  display: flex;
+  width: 200%; /* Espacio para dos paneles: principal y submenús */
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(0);
+}
+
+/* Cuando se muestra un submenú, se desliza a la izquierda */
+.settings-menu-container[data-view="submenu"] {
+  transform: translateX(-50%);
+}
+
+/* Panel del Menú Principal (50% del contenedor = 100% del viewport) */
+.main-menu-view {
+  width: 50%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor de submenús (el otro 50%) */
+.submenus-wrapper {
+  width: 50%;
+  flex-shrink: 0;
+  position: relative; /* Clave para posicionar submenús hijos */
+  /* Estilos para TODOS los submenús dentro del wrapper */
+  .submenu-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: inherit; /* Hereda el color de fondo */
+    
+    /* IMPORTANTE: Completamente oculto por defecto */
+    opacity: 0;
+    display: none;
+    visibility: hidden;
+    pointer-events: none; /* Evita que elementos invisibles sean clickeables */
+    z-index: 1; /* Z-index base para submenús */
+    
+    /* Transición solo para opacity/visibility */
+    transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out;
+    
+    /* Asegura que el contenido no se desborde */
+    overflow: hidden;
+  }
+  
+  /* CRÍTICO: Estilos para cuando el submenú está activo */
+  .submenu-view.is-active {
+    opacity: 1;
+    display: block;
+    visibility: visible;
+    pointer-events: auto; /* Permite interacciones cuando está visible */
+    z-index: 10; /* Z-index más alto para el submenú activo */
+  }
+}
+
+
+/* Tus estilos existentes para header, main, etc. */
+.menu-header, .menu-footer {
+  padding: 8px;
+}
+.menu-main {
+  padding: 0 8px;
+}
+
+/* Estilos del wrapper exterior (sin cambios) */
+.menu-wrapper-outer {
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+@media (prefers-color-scheme: dark) {
+  .menu-wrapper-outer {
+     background-color: #282828;
+     border-color: #444;
+  }
+}
+</style>

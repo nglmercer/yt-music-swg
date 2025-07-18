@@ -1,0 +1,71 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'div'> {
+  id: string;
+  title: string;
+}
+
+const { id, title, ...rest } = Astro.props;
+---
+<div id={id} class:list={["submenu-view", "menu-view", rest.class]}>
+  <header class="submenu-header">
+    <button type="button" class="back-button" data-submenu-back>
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <h3 class="submenu-title">{title}</h3>
+  </header>
+  <main class="submenu-main">
+    <slot />
+  </main>
+</div>
+
+<style>
+  .submenu-header {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  @media (prefers-color-scheme: dark) {
+    .submenu-header {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f0f0f;
+  }
+  @media (prefers-color-scheme: dark) {
+    .back-button {
+      color: #f1f1f1;
+    }
+  }
+  .back-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  @media (prefers-color-scheme: dark) {
+    .back-button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .submenu-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .submenu-main {
+    padding: 8px 0;
+  }
+</style>

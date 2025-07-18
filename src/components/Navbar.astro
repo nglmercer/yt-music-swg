@@ -1,12 +1,16 @@
 ---
 // Navbar component similar a YouTube Music
+import SettingsMenu from './SettingsPanel/SettingsMenu.astro';
+import SettingsItem from './SettingsPanel/SettingsItem.astro';
+import SettingsSubmenu from './SettingsPanel/SettingsSubmenu.astro';
+import Dropdown from './SettingsPanel/Dropdown.astro';
 ---
 
 <nav class="flex items-center justify-between px-6 py-4 h-16">
   <!-- Left Section: Menu + Logo -->
   <div class="flex items-center space-x-4">
     <!-- Menu Button -->
-    <button data-menu-button class="p-2 rounded-full hover:bg-gray-800 transition-colors">
+    <button data-dropdown-trigger="NOMBRE_DEL_DROPDOWN" class="p-2 rounded-full hover:bg-gray-800 transition-colors">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
       </svg>
@@ -63,7 +67,7 @@
     <!-- Cast Button -->
 
     <!-- Settings Button -->
-    <button class="hidden sm:block p-2 rounded-full hover:bg-gray-800 transition-colors">
+    <button data-dropdown-trigger="NOMBRE_DEL_DROPDOWN" class="hidden sm:block p-2 rounded-full hover:bg-gray-800 transition-colors" data-open-settings>
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -78,7 +82,41 @@
     </button>
   </div>
 </nav>
-
+      <Dropdown dropdownName='NOMBRE_DEL_DROPDOWN'>
+    <div slot="content">
+      <div class="menu-wrapper-outer">
+        <SettingsMenu>
+          <!-- Slot: header -->
+          <div slot="header" class="user-profile">
+            <span>Mi Perfil</span>
+          </div>
+  
+          <!-- Slot por defecto (Menú Principal) -->
+          <SettingsItem label="Aspecto" subtext="Tema del dispositivo" hasSubmenu={true} data-submenu-target="submenu-appearance">
+          </SettingsItem>
+          <SettingsItem label="Idioma" subtext="Español" hasSubmenu={true} data-submenu-target="submenu-language">
+          </SettingsItem>
+          <SettingsItem label="Ubicación" subtext="España" href="/ubicacion">
+          </SettingsItem>
+  
+          <!-- Slot: submenus -->
+          <div slot="submenus">
+            <SettingsSubmenu id="submenu-appearance" title="Aspecto">
+              <SettingsItem label="Usar tema del dispositivo" />
+              <SettingsItem label="Tema oscuro" />
+              <SettingsItem label="Tema claro" />
+            </SettingsSubmenu>
+  
+            <SettingsSubmenu id="submenu-language" title="Idioma">
+              <SettingsItem label="Español" />
+              <SettingsItem label="English" />
+              <SettingsItem label="Deutsch" />
+            </SettingsSubmenu>
+          </div>
+        </SettingsMenu>
+      </div>
+    </div>
+  </Dropdown>
 <!-- Mobile Search Modal -->
 <div id="mobile-search-modal" class="fixed inset-0 bg-gray-900 z-50 md:hidden hidden">
   <div class="flex flex-col h-full">
@@ -163,12 +201,11 @@
 <script>
     import { parseYouTubeMusicResponse, renderResults } from '../utils/fetch/youtube-music-parser';
   import type { YouTubeMusicSearchResponse } from '../utils/fetch/youtube-music';
-  import { YouTubeMusicApi } from "../utils/fetch/fetchapi";
+  import apiConfig from '@utils/fetch/config/apiConfig';
+  import { YTMusicApi } from "../utils/fetch/fetchapi";
   import { emitter } from '@utils/Emitter';
-  const Port = 26538;
 	async function getPlaylist(query:string) {
-		const api = new YouTubeMusicApi("http://localhost:"+Port);
-		const result = await api.search({
+		const result = await YTMusicApi.search({
 			query: query,
 		})
 		return result;

@@ -40,7 +40,7 @@
       if (volume_value?.state){
         volumeLevel = volume_value.state;
       }
-      console.log("volume_value", volume_value)
+      
   }
 
   // --- LÓGICA DEL CICLO DE VIDA ---
