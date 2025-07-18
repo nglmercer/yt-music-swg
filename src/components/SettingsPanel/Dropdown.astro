@@ -51,24 +51,11 @@ class DropdownManager {
     }
   }
 
-  private lastViewportHeight = window.visualViewport?.height ?? window.innerHeight;
-
   private handleResize(): void {
-    /* 1. Detectamos si el cambio fue por el teclado. */
-    const currentHeight = window.visualViewport?.height ?? window.innerHeight;
-    const currentWidth  = window.visualViewport?.width  ?? window.innerWidth;
-
-    const heightDiff = Math.abs(this.lastViewportHeight - currentHeight);
-    const widthSame  = Math.abs(window.innerWidth - currentWidth) < 2;
-
-    this.lastViewportHeight = currentHeight;
-
-    // Si el cambio es pequeño o es por el teclado, no hacemos nada
-    if (heightDiff < 100 || (heightDiff > 100 && !widthSame)) return;
-
-    /* 2. Si no fue el teclado, cerramos el dropdown. */
+    // CAMBIO CLAVE: En lugar de cerrar el dropdown, actualizamos su posición.
+    // Esto es crucial para que no se cierre cuando el teclado aparece en móviles.
     if (this.activeDropdown) {
-      this.closeDropdown();
+      this.updateDropdownPosition();
     }
   }
 
@@ -99,7 +86,6 @@ class DropdownManager {
 
     const triggerRect = this.activeTrigger.getBoundingClientRect();
     const menu = this.activeDropdown;
-    // Forzamos un reflow para asegurar que las dimensiones son correctas después de quitar 'hidden'
     const menuRect = menu.getBoundingClientRect(); 
     
     const viewportWidth = window.innerWidth;
@@ -112,16 +98,13 @@ class DropdownManager {
     const spaceBelow = viewportHeight - triggerRect.bottom;
     const spaceAbove = triggerRect.top;
 
-    // ¿Hay suficiente espacio abajo? O ¿Hay más espacio abajo que arriba?
     if (spaceBelow >= menuRect.height || spaceBelow > spaceAbove) {
       top = triggerRect.bottom;
-      // Nos aseguramos de que no se salga por abajo
       if (top + menuRect.height > viewportHeight) {
         top = viewportHeight - menuRect.height - margin;
       }
-    } else { // Si no, lo posicionamos arriba
+    } else {
       top = triggerRect.top - menuRect.height;
-      // Nos aseguramos de que no se salga por arriba
       if (top < 0) {
         top = margin;
       }
@@ -129,12 +112,9 @@ class DropdownManager {
 
     // --- Posicionamiento Horizontal ---
     left = triggerRect.left;
-    // ¿Se sale por la derecha?
     if (left + menuRect.width > viewportWidth) {
-      // Lo alineamos a la derecha del trigger
       left = triggerRect.right - menuRect.width;
     }
-    // ¿Se sale por la izquierda? (puede pasar con el ajuste anterior)
     if (left < 0) {
       left = margin;
     }
@@ -143,6 +123,7 @@ class DropdownManager {
     menu.style.left = `${left}px`;
   }
 }
+
 
 // Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
