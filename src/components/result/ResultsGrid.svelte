@@ -1,15 +1,16 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import {emitter} from "@utils/Emitter";
   import type{ CleanItem,CleanSection } from "@utils/fetch/youtube-music";
   import { YTMusicApi } from "@utils/fetch/fetchapi";
+  import { LocalStorageData } from "@components/Instances";
   // --- estado interno que podrá cambiar el cliente
   let cleanData: CleanSection[] = $state([]);
-  emitter.on('dataUpdated', (newData: CleanSection[]) => {
-    cleanData = newData;
-  })
+
   // --- API pública que el cliente puede invocar
   export function setData(newData: CleanSection[]) {
     cleanData = newData;
+    LocalStorageData.set('cleanData', newData)
   }
 
   function emitVideoSelected(videoId: string, target: HTMLElement) {
@@ -17,6 +18,15 @@
     emitter.emit('videoSelected', videoId);
     YTMusicApi.addToQueue(videoId,'INSERT_AFTER_CURRENT_VIDEO');
   }
+  onMount(async () => {
+      if (LocalStorageData.get('cleanData')) {
+        cleanData = LocalStorageData.get('cleanData') as CleanSection[];
+      }
+      emitter.on('dataUpdated', (newData: CleanSection[]) => {
+        cleanData = newData;
+        LocalStorageData.set('cleanData', newData)
+      });
+  })
   //YTMusicApi.clearQueue();
 </script>
 

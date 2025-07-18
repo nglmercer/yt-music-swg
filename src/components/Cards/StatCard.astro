@@ -1,0 +1,43 @@
+---
+export interface Props {
+  title: string;
+  subtitle: string;
+  icon: string;          // nombre del icono en Material Symbols
+  colorClass?: string;
+  href?: string;
+  target?: string;
+}
+
+const {
+  title,
+  subtitle,
+  icon,
+  colorClass = 'bg-blue-500',
+  href = '#',
+  target
+} = Astro.props;
+---
+
+<a
+  href={href}
+  target={target}
+  class="block bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer"
+>
+  <div class="flex items-center space-x-3">
+    <div
+      class={`w-10 h-10 md:w-12 md:h-12 ${colorClass} rounded-lg flex items-center justify-center flex-shrink-0`}
+    >
+      <span class="material-symbols-outlined text-white text-xl md:text-2xl">
+        {icon}
+      </span>
+    </div>
+    <div class="min-w-0">
+      <h3 class="text-sm md:text-base font-medium text-white truncate">
+        {title}
+      </h3>
+      <p class="text-sm text-gray-400 truncate">
+        {subtitle}
+      </p>
+    </div>
+  </div>
+</a>

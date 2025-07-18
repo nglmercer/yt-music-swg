@@ -1,9 +1,11 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro';
-import Navbar from '../components/Navbar.astro';
-import Sidebar from '../components/Sidebar.astro';
-import Player from '../components/Player.svelte';
+import MainLayout from '@layouts/MainLayout.astro';
+import Navbar from '@components/Navbar.astro';
+import Sidebar from '@components/Sidebar.astro';
+import Player from '@components/Player.svelte';
 import MainPlayer from '@components/MainPlayer.astro';
+import ResultsGrid from '@components/result/ResultsGrid.svelte';
+import StatCard from '@components/Cards/StatCard.astro';
 ---
 
 <MainLayout title="YouTube Music">
@@ -18,64 +20,44 @@ import MainPlayer from '@components/MainPlayer.astro';
         <h1 class="text-2xl md:text-3xl font-bold mb-2">Bienvenido de nuevo</h1>
         <p class="text-gray-400">Tu música, siempre contigo</p>
       </div>
-      
+      <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8"
+          >
+            <StatCard
+              title="Canciones que te gustan"
+              subtitle="15 canciones"
+              colorClass="bg-blue-500"
+              icon="favorite"
+            />
+
+            <StatCard
+              title="Descargas"
+              subtitle="8 canciones"
+              colorClass="bg-green-500"
+              icon="download"
+            />
+
+            <StatCard
+              title="Listas de reproducción"
+              subtitle="3 listas"
+              colorClass="bg-purple-500"
+              icon="playlist_play"
+            />
+
+            <StatCard
+              title="Mi SuperMix"
+              subtitle="Basado en tu actividad"
+              colorClass="bg-gradient-to-br from-orange-500 to-red-500"
+              icon="star"
+            />
+          </div>
       <!-- Quick Actions -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
-        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <h3 class="text-sm md:text-base font-medium truncate">Canciones que te gustan</h3>
-              <p class="text-sm text-gray-400">15 canciones</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <h3 class="text-sm md:text-base font-medium truncate">Descargas</h3>
-              <p class="text-sm text-gray-400">8 canciones</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <h3 class="text-sm md:text-base font-medium truncate">Listas de reproducción</h3>
-              <p class="text-sm text-gray-400">3 listas</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors cursor-pointer">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-            </div>
-            <div class="min-w-0">
-              <h3 class="text-sm md:text-base font-medium truncate">Mi SuperMix</h3>
-              <p class="text-sm text-gray-400">Basado en tu actividad</p>
-            </div>
-          </div>
-        </div>
+      <div class="sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+          <ResultsGrid
+            id="resultsGrid"
+            client:only="svelte"
+            on:videoSelected={(e:any) => console.log('Video:', e.detail)}
+          />    
       </div>
       
       <MainPlayer />
