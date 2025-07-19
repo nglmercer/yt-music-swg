@@ -117,7 +117,9 @@ document.addEventListener('DOMContentLoaded', setupSettingsMenu);
 .submenus-wrapper {
   width: 50%;
   flex-shrink: 0;
-  min-height: calc(28dvh - 64px); /* Ajusta según tus necesidades */
+  min-height: auto; /* Ajusta según tus necesidades */
+  overflow-y: auto;
+  height: max(24dvh, calc(32dvh - 64px)); /* Ajusta según tus necesidades */
   position: relative; /* Clave para posicionar submenús hijos */
   /* Estilos para TODOS los submenús dentro del wrapper */
   .submenu-view {
@@ -125,7 +127,7 @@ document.addEventListener('DOMContentLoaded', setupSettingsMenu);
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: auto;
     background-color: inherit; /* Hereda el color de fondo */
     
     /* IMPORTANTE: Completamente oculto por defecto */
