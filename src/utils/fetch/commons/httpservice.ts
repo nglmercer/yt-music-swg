@@ -1,7 +1,7 @@
 // httpservice.ts - Servicio HTTP actualizado con soporte para proxy
 import { safeParse } from "./safeparse";
 import { proxyConfig } from './proxyConfig.ts';
-import type{ ProxyConfig } from "./Types";
+import type{ ProxyConfig } from "../config/apiConfig.ts";
 
 type FetchOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>;
@@ -10,10 +10,6 @@ type FetchOptions = Omit<RequestInit, 'headers'> & {
 };
 
 type RequestBody = Record<string, any> | FormData;
-proxyConfig.update({
-  enabled: true,
-  url: 'http://localhost:3000'  // ✅ URL completa sin barra final
-})
 /**
  * Maneja la respuesta de la API
  */
@@ -97,14 +93,13 @@ function buildProxyRequest(url: string, options: RequestInit): [string, RequestI
     return [url, options];
   }
 
-  const proxyUrl = proxyConfig.getProxyUrl();
+  const proxyURL = proxyConfig.getProxyUrl();
   const proxyAuthHeaders = proxyConfig.getAuthHeaders();
   const normalizedHeaders = normalizeHeaders(options.headers);
   
   // En entornos del navegador, usamos el proxy como prefijo de URL
   // En Node.js, esto se manejaría diferente con agentes HTTP
-  const finalUrl = proxyUrl;
-  console.log("url",url)
+  const finalUrl = proxyURL;
   const finalOptions: RequestInit = {
     ...options,
     headers: {
@@ -130,10 +125,10 @@ async function executeRequest<T>(
     const response = await requestFn();
     return await handleResponse<T>(response);
   } catch (error) {
-    console.warn('Error con proxy, intentando sin proxy:', error);
     
     // Si hay una función de fallback (sin proxy), intentarla
     if (fallbackFn) {
+      console.warn('Error con proxy, intentando sin proxy:', error);
       try {
         const fallbackResponse = await fallbackFn();
         return await handleResponse<T>(fallbackResponse);

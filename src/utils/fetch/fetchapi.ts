@@ -9,6 +9,16 @@ import type {
 } from './youtube-music';
 import apiConfig from './config/apiConfig';
 import BaseApi from "./commons/BaseApi";
+import LocalStorageManager from "@utils/LocalStorageManager";
+import { emitter } from "@utils/Emitter";
+interface LocalStorageSwitch {
+  [key: string]: boolean;
+}
+interface LocalStorageInput {
+  [key: string]: string;
+}
+const SwitchStoreManager = new LocalStorageManager<LocalStorageSwitch>("SwitchStoreManager");
+const InputStoreManager = new LocalStorageManager<LocalStorageInput>("InputStoreManager");
 
 export type RepeatMode = 'NONE' | 'ALL' | 'ONE';
 
@@ -204,12 +214,36 @@ class YouTubeMusicApi extends BaseApi {
 }
 apiConfig.update({
   proxy: {
-    enabled: true,
-    url: 'http://localhost:3000',
+    enabled: SwitchStoreManager.get('proxyEnabled') ?? true,
+    url: InputStoreManager.get('proxyURL') || 'http://localhost:3001',
   }
 })
+apiConfig.update({
+  host: InputStoreManager.get('apiURL') || apiConfig.host,
+  port: InputStoreManager.get('apiPORT') || apiConfig.port,
+})
+const API_CHANGE_EVENTS = {
+  proxyEnabled: 'ls:switch:proxyEnabled',
+  proxyURL: 'ls:input:proxyURL',
+  apiURL: 'ls:input:apiURL',
+  apiPORT: 'ls:input:apiPORT',
+}
 const YTMusicApi = new YouTubeMusicApi(apiConfig);
 console.log("apiConfig",apiConfig.getFullUrl())
+Object.entries(API_CHANGE_EVENTS).forEach(([key, event]) => {
+  emitter.on(event, (value: string | boolean) => {
+    //console.log(`Received event ${event} with value:`, value);
+    if (key === 'proxyEnabled') {
+      apiConfig.proxy!.enabled = value as boolean;
+    } else if (key === 'proxyURL'){
+      apiConfig.proxy!.url = value as string;
+    }else {
+      apiConfig.update({ [key]: value });
+    }
+    console.log("apiConfig",apiConfig);
+    YTMusicApi.updateConfig(apiConfig);
+  });
+});
 export {
   YouTubeMusicApi,
   YTMusicApi

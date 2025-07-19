@@ -1,0 +1,89 @@
+---
+// src/components/LocalStorageSwitch.astro
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'input'> {
+  id: string;
+  label: string;
+  theme?: 'light' | 'dark';
+  class?: string;
+}
+
+const {
+  id,
+  label,
+  theme = 'light',
+  class: customClass,
+  ...rest
+} = Astro.props;
+
+const trackClasses = theme === 'dark'
+  ? 'bg-gray-700 peer-focus:ring-blue-600 peer-checked:bg-blue-500'
+  : 'bg-gray-300 peer-focus:ring-indigo-500 peer-checked:bg-indigo-600';
+
+const thumbClasses = 'after:content-[""] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white';
+---
+
+<div class:list={['flex items-center', customClass]}>
+  <label for={id} class:list={['text-sm font-medium mr-3 cursor-pointer', theme === 'dark' ? 'text-gray-300' : 'text-gray-700']}>
+    {label}
+  </label>
+
+  <label class="relative inline-flex cursor-pointer items-center">
+    <input
+      type="checkbox"
+      id={id}
+      name={id}
+      class="peer sr-only"
+      data-local-storage-switch="true"
+      {...rest}
+    />
+    <div class:list={[
+      'h-6 w-11 rounded-full after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4',
+      trackClasses
+    ]}></div>
+  </label>
+</div>
+
+<script>
+  import LocalStorageManager from "@utils/LocalStorageManager";
+  import { emitter } from "@utils/Emitter";
+  interface LocalStorageSwitch {
+    [key: string]: boolean;
+  }
+  const SwitchStoreManager = new LocalStorageManager<LocalStorageSwitch>("SwitchStoreManager");
+
+  function setupLocalStorageSwitches() {
+    const switchElements = document.querySelectorAll('[data-local-storage-switch]');
+
+    if (switchElements.length === 0) return;
+
+    switchElements.forEach(el => {
+      if (!(el instanceof HTMLInputElement)) return;
+
+      const storageKey = el.id;
+      if (!storageKey) {
+        console.warn('El switch con data-local-storage-switch no tiene un id y será ignorado.', el);
+        return;
+      }
+
+      const savedValue = SwitchStoreManager.getItem(storageKey);
+      if (savedValue !== null) {
+        el.checked = savedValue;
+      }
+
+      const handleChange = () => {
+        SwitchStoreManager.set(storageKey, el.checked);
+        emitter.emit(`ls:switch:${storageKey}`, el.checked);
+      };
+
+      el.addEventListener('change', handleChange);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLocalStorageSwitches);
+  } else {
+    setupLocalStorageSwitches();
+  }
+</script>

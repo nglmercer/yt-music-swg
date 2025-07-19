@@ -5,7 +5,9 @@ import SettingsItem from './SettingsPanel/SettingsItem.astro';
 import SettingsSubmenu from './SettingsPanel/SettingsSubmenu.astro';
 import Dropdown from './SettingsPanel/Dropdown.astro';
 import LocalStorageInput  from './commons/LocalStorageInput.astro';
+import LocalStorageSwitch from './commons/LocalStorageSwitch.astro';
 import { defaultBtn } from './commons/const_class';
+const flexcenter = "flex items-center justify-between p-2 gap-2";
 ---
 
 <nav class="flex items-center justify-between px-6 py-4 h-16">
@@ -94,41 +96,51 @@ import { defaultBtn } from './commons/const_class';
           </div>
   
           <!-- Slot por defecto (Menú Principal) -->
-          <SettingsItem label="Aspecto" subtext="Tema del dispositivo" hasSubmenu={true} data-submenu-target="submenu-appearance">
+          <SettingsItem label="Configurar proxy" subtext="Proxy, URL, PORT" hasSubmenu={true} data-submenu-target="submenu-proxy">
           </SettingsItem>
-          <SettingsItem label="ApiConfig" subtext="apiUrl" hasSubmenu={true} data-submenu-target="submenu-configApi">
+          <SettingsItem label="Configurar api" subtext="API, URL, PORT" hasSubmenu={true} data-submenu-target="submenu-configApi">
           </SettingsItem>
           <div></div>
   
           <!-- Slot: submenus -->
           <div slot="submenus">
-            <SettingsSubmenu id="submenu-appearance" title="Aspecto">
-              <SettingsItem label="Usar tema del dispositivo" />
-              <SettingsItem label="Tema oscuro" />
-              <SettingsItem label="Tema claro" />
+            <SettingsSubmenu id="submenu-proxy" title="Proxymenu">
+              <LocalStorageSwitch
+                id="proxyEnabled"
+                label="Habilitar Proxy"
+                theme='dark'
+                class={flexcenter}
+              />
+              <LocalStorageInput
+                id="proxyURL"
+                label="Proxy URL"
+                placeholder="Introduce la URL del proxy"
+                theme='dark'
+                class={flexcenter}
+              />
+            <button id="ImportPROXYURL" class={defaultBtn}>
+                Scan Config
+              </button>
             </SettingsSubmenu>
   
             <SettingsSubmenu id="submenu-configApi" title="ApiConfig">
-            <div class="py-2 px-4">
+            <div class="grid">
               <LocalStorageInput
-                id="apiUrl"
+                id="apiURL"
                 label="URL"
-                placeholder="Introduce tu clave de apiUrl"
+                placeholder="Introduce tu clave de apiURL"
                 theme='dark'
-                class='flex justify-between'
+                class={flexcenter}
               />
               <LocalStorageInput
                 id="apiPORT"
                 label="PORT"
                 placeholder="Introduce tu clave de apiPORT"
                 theme='dark'
-                class='flex justify-between'
+                class={flexcenter}
               />
               <button id="ImportAPIURL" class={defaultBtn}>
-                Import API Config
-              </button>
-              <button id="SaveConfigURL" class={defaultBtn}>
-                Guardar
+                Scan Config
               </button>
             </div>
             </SettingsSubmenu>
@@ -316,7 +328,7 @@ import { defaultBtn } from './commons/const_class';
         mobileSearchModal?.classList.add('hidden');
       }
     });
-    const apiUrlInput = document.getElementById('apiUrl') as HTMLInputElement;
+    const apiUrlInput = document.getElementById('apiURL') as HTMLInputElement;
     const apiPortInput = document.getElementById('apiPORT') as HTMLInputElement;
     emitter.on(QRCallbackname, (data:{
       hostname:string;
@@ -333,9 +345,9 @@ import { defaultBtn } from './commons/const_class';
     })
     apiUrlInput?.addEventListener('change', (e) => {
       const target = e.target as HTMLInputElement;
-      const apiUrl = target.value;
+      const apiURL = target.value;
       apiConfig.update({
-          host: apiUrl
+          host: apiURL
       })
     });
   });

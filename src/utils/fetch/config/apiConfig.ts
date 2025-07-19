@@ -41,7 +41,7 @@ const apiConfig: ApiConfig = {
   // Agregar configuración del proxy basada en variables de entorno
   proxy: import.meta.env.VITE_USE_PROXY === 'true' ? {
     enabled: true,
-    url: import.meta.env.VITE_PROXY_URL || 'http://localhost:3000',
+    url: import.meta.env.VITE_PROXY_URL || 'http://localhost:3001',
     auth: (import.meta.env.VITE_PROXY_USERNAME && import.meta.env.VITE_PROXY_PASSWORD) ? {
       username: import.meta.env.VITE_PROXY_USERNAME,
       password: import.meta.env.VITE_PROXY_PASSWORD

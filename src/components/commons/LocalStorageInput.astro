@@ -54,6 +54,8 @@ const themeClasses = {
     [key: string]: string;
   }
   const InputStoreManager = new LocalStorageManager<LocalStorageInput>("InputStoreManager");
+  import { emitter } from "@utils/Emitter";
+
   function setupLocalStorageInputs() {
     // Seleccionamos todos los elementos con el marcador en la página.
     const inputElements = document.querySelectorAll('[data-local-storage-input]');
@@ -81,6 +83,7 @@ const themeClasses = {
       // 2. Guardar el valor en localStorage cada vez que el usuario escribe.
       const handleInput = () => {
         InputStoreManager.set(storageKey, input.value);
+        emitter.emit(`ls:input:${storageKey}`, input.value);
       };
 
       input.addEventListener('input', handleInput);
