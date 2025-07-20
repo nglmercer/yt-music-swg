@@ -46,44 +46,5 @@ const thumbClasses = 'after:content-[""] after:absolute after:top-0.5 after:left
 </div>
 
 <script>
-  import LocalStorageManager from "@utils/LocalStorageManager";
-  import { emitter } from "@utils/Emitter";
-  interface LocalStorageSwitch {
-    [key: string]: boolean;
-  }
-  const SwitchStoreManager = new LocalStorageManager<LocalStorageSwitch>("SwitchStoreManager");
-
-  function setupLocalStorageSwitches() {
-    const switchElements = document.querySelectorAll('[data-local-storage-switch]');
-
-    if (switchElements.length === 0) return;
-
-    switchElements.forEach(el => {
-      if (!(el instanceof HTMLInputElement)) return;
-
-      const storageKey = el.id;
-      if (!storageKey) {
-        console.warn('El switch con data-local-storage-switch no tiene un id y será ignorado.', el);
-        return;
-      }
-
-      const savedValue = SwitchStoreManager.getItem(storageKey);
-      if (savedValue !== null) {
-        el.checked = savedValue;
-      }
-
-      const handleChange = () => {
-        SwitchStoreManager.set(storageKey, el.checked);
-        emitter.emit(`ls:switch:${storageKey}`, el.checked);
-      };
-
-      el.addEventListener('change', handleChange);
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupLocalStorageSwitches);
-  } else {
-    setupLocalStorageSwitches();
-  }
+  import './InputStorage.ts';
 </script>

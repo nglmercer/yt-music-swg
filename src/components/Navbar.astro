@@ -237,8 +237,8 @@ const flexcenter = "flex items-center justify-between p-2 gap-2";
   import apiConfig from '@utils/fetch/config/apiConfig';
   import { YTMusicApi } from "../utils/fetch/fetchapi";
   import { emitter } from '@utils/Emitter';
-  import { QRCallbackname } from './commons/const_emits';
-  
+  import { QRCallbackname, QRproxycb,type UrlParams } from './commons/const_emits';
+  import { InputStoreManager, SwitchStoreManager } from './commons/InputStorage'
 	async function getPlaylist(query:string) {
 		const result = await YTMusicApi.search({
 			query: query,
@@ -330,25 +330,29 @@ const flexcenter = "flex items-center justify-between p-2 gap-2";
     });
     const apiUrlInput = document.getElementById('apiURL') as HTMLInputElement;
     const apiPortInput = document.getElementById('apiPORT') as HTMLInputElement;
-    emitter.on(QRCallbackname, (data:{
-      hostname:string;
-      port:string;
-      protocol:string;
-    }) => {
+
+    emitter.on(QRCallbackname, (data:UrlParams) => {
       console.log('QRCallbackname',data)
       apiUrlInput.value = data.hostname;
-      apiPortInput.value = data.port
+      apiPortInput.value = data.port;
       apiConfig.update({
           host: data.hostname,
           port: data.port,
-      })
+      });
+      InputStoreManager.set('apiURL', data.hostname);
+      InputStoreManager.set('apiPORT', data.port);
     })
-    apiUrlInput?.addEventListener('change', (e) => {
-      const target = e.target as HTMLInputElement;
-      const apiURL = target.value;
-      apiConfig.update({
-          host: apiURL
-      })
-    });
+    emitter.on(QRproxycb, (data:UrlParams) => {
+      console.log('QRproxycb',data)
+      const proxyUrlInput = document.getElementById('proxyURL') as HTMLInputElement;
+      const proxyEnabledSwitch = document.getElementById('proxyEnabled') as HTMLInputElement;
+      const newURL = `${data.protocol}//${data.hostname}:${data.port}`;
+      proxyUrlInput.value = newURL;
+      proxyEnabledSwitch.checked = true;
+      apiConfig.proxy!.url = newURL;
+      apiConfig.proxy!.enabled = true;
+      InputStoreManager.set('proxyURL', newURL);
+      SwitchStoreManager.set('proxyEnabled', true);
+    })
   });
 </script>

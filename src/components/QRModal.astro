@@ -7,20 +7,25 @@ import ModalAstro from "@components/commons/ModalAstro.astro";
 </ModalAstro>
 <script>
     import { emitter } from "@utils/Emitter";
-    import { QRCallbackname } from "./commons/const_emits";
+    import { QRCallbackname,QRproxycb } from "./commons/const_emits";
     const ImportAPIURLID = "ImportAPIURL"
+    const ImportPROXYURLID = "ImportPROXYURL"
     const ImportAPIURL = document.getElementById(ImportAPIURLID);
+    const ImportPROXYURL = document.getElementById(ImportPROXYURLID);
     /*     emitter.on(QRCallbackname, (url) => {
             console.log(QRCallbackname, url);
         }); */
 
     document.addEventListener('DOMContentLoaded', () => {
-        if (ImportAPIURL) {
+        if (!ImportAPIURL || !ImportPROXYURL) return;
             ImportAPIURL.addEventListener("click", () => {
                 emitter.emit("open:QRModal");
                 emitter.emit("open:QRscan",QRCallbackname);
             });
-        }
+            ImportPROXYURL.addEventListener("click", () => {
+                emitter.emit("open:QRModal");
+                emitter.emit("open:QRscan",QRproxycb);
+            });
         console.log('DOMContentLoaded');
     });
 </script>
